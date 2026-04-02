@@ -326,81 +326,106 @@
   </main>
 
   <script>
-const FEED_URL = "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310";
-const RSS_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(FEED_URL);
+    const FEED_URLS = [
+      "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
+      "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391"
+    ];
 
-const feed = document.getElementById("feed");
-const sectionMeta = document.getElementById("section-meta");
+    const feed = document.getElementById("feed");
+    const sectionMeta = document.getElementById("section-meta");
 
-async function load() {
-  let archive = [];
+    function makeRss2JsonUrl(feedUrl) {
+      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+    }
 
-  try {
-    const res = await fetch("archive.json");
-    archive = await res.json();
-  } catch {
-    archive = [];
-  }
+    async function load() {
+      let archive = [];
 
-  try {
-    const res = await fetch(RSS_URL);
-    const data = await res.json();
-    const items = data.items || [];
-
-    let updated = false;
-
-    items.forEach(item => {
-      if (!archive.find(a => a.link === item.link)) {
-        archive.unshift(item);
-        updated = true;
+      try {
+        const res = await fetch("archive.json");
+        archive = await res.json();
+      } catch {
+        archive = [];
       }
-    });
 
-    render(archive);
+      let allItems = [];
 
-  } catch {
-    render(archive);
-  }
-}
+      for (const feedUrl of FEED_URLS) {
+        try {
+          const res = await fetch(makeRss2JsonUrl(feedUrl));
+          const data = await res.json();
+          const items = Array.isArray(data.items) ? data.items : [];
+          allItems = allItems.concat(items);
+        } catch {
+          // ignore failed feed and continue
+        }
+      }
 
-function render(items) {
-  feed.innerHTML = "";
+      allItems.forEach(item => {
+        if (!archive.find(a => a.link === item.link)) {
+          archive.unshift(item);
+        }
+      });
 
-  if (!items.length) {
-    feed.innerHTML = `<div class="empty">No incidents yet.</div>`;
-    return;
-  }
+      archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-  items.forEach(entry => {
-    const article = document.createElement("article");
-    article.className = "entry";
+      render(archive);
+    }
 
-    const date = new Date(entry.pubDate).toLocaleDateString("en-GB");
+    function render(items) {
+      feed.innerHTML = "";
 
-    const summary = (entry.description || "")
-      .replace(/<[^>]+>/g, "")
-      .slice(0, 180);
+      if (!items.length) {
+        feed.innerHTML = `<div class="empty">No incidents yet.</div>`;
+        sectionMeta.textContent = "No new entries";
+        return;
+      }
 
-    article.innerHTML = `
-      <div class="entry-meta">
-        <div class="entry-date">${date}</div>
-        <div class="entry-source">Google Alerts</div>
-        <div class="entry-tag">Archive</div>
-      </div>
+      const latestDate = items[0]?.pubDate;
+      if (latestDate) {
+        const d = new Date(latestDate);
+        sectionMeta.textContent = d.toLocaleString("en-GB", {
+          month: "long",
+          year: "numeric"
+        });
+      }
 
-      <div class="entry-body">
-        <h2 class="entry-title">${entry.title}</h2>
-        <div class="entry-summary">${summary}</div>
-        <div class="entry-quote">“${summary.slice(0,120)}...”</div>
-        <a class="entry-link" href="${entry.link}" target="_blank">Read source</a>
-      </div>
-    `;
+      items.forEach(entry => {
+        const article = document.createElement("article");
+        article.className = "entry";
 
-    feed.appendChild(article);
-  });
-}
+        const date = new Date(entry.pubDate).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
 
-load();
-</script>
+        const summary = (entry.description || "")
+          .replace(/<[^>]+>/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 180);
+
+        article.innerHTML = `
+          <div class="entry-meta">
+            <div class="entry-date">${date}</div>
+            <div class="entry-source">Google Alerts</div>
+            <div class="entry-tag">Archive</div>
+          </div>
+
+          <div class="entry-body">
+            <h2 class="entry-title">${entry.title}</h2>
+            <div class="entry-summary">${summary}</div>
+            <div class="entry-quote">“${summary.slice(0,120)}...”</div>
+            <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">Read source</a>
+          </div>
+        `;
+
+        feed.appendChild(article);
+      });
+    }
+
+    load();
+  </script>
 </body>
 </html>

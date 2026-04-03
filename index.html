@@ -348,7 +348,7 @@
       background:var(--bg);
       color:var(--ink);
       border:1px solid var(--ink);
-      width:min(96vw, 580px);
+      width:min(96vw, 620px);
       padding:14px;
     }
 
@@ -358,6 +358,7 @@
       align-items:center;
       gap:10px;
       margin-bottom:14px;
+      flex-wrap:wrap;
     }
 
     .export-toolbar-left{
@@ -376,11 +377,6 @@
       padding:9px 10px 8px;
     }
 
-    .export-toolbar button.active{
-      background:var(--ink);
-      color:var(--bg);
-    }
-
     .export-stage{
       display:flex;
       justify-content:center;
@@ -391,69 +387,41 @@
       padding:12px;
     }
 
-    .export-card{
+    .story-card{
+      width:1080px;
+      height:1920px;
       background:#f35a08;
       color:#050505;
       border:2px solid rgba(5,5,5,.95);
-      overflow:hidden;
+      padding:110px 76px 110px;
       display:grid;
-    }
-
-    .export-card.post{
-      width:1080px;
-      height:1350px;
-      padding:74px 66px 58px;
       grid-template-rows:auto 1fr auto;
-      gap:38px;
+      gap:48px;
+      overflow:hidden;
     }
 
-    .export-card.story{
-      width:1080px;
-      height:1920px;
-      padding:124px 76px 124px;
-      grid-template-rows:auto 1fr auto;
-      gap:52px;
-    }
-
-    .card-topline{
+    .story-top{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:22px;
-    }
-
-    .export-card.story .card-topline{
       padding-top:28px;
     }
 
-    .card-kicker{
+    .story-kicker{
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
       gap:20px;
-      margin-bottom:34px;
+      margin-bottom:50px;
       font-size:28px;
       line-height:1;
       font-weight:700;
     }
 
-    .export-card.story .card-kicker{
-      margin-bottom:56px;
-    }
-
-    .card-title-wrap{
-      width:100%;
+    .story-title-wrap{
+      height:760px;
       overflow:hidden;
     }
 
-    .export-card.post .card-title-wrap{
-      height:470px;
-    }
-
-    .export-card.story .card-title-wrap{
-      height:760px;
-    }
-
-    .card-headline{
-      display:block;
+    .story-title{
       width:100%;
       margin:0;
       font-weight:700;
@@ -466,60 +434,38 @@
       max-width:100%;
     }
 
-    .card-mid{
+    .story-mid{
       border-top:2px solid rgba(5,5,5,.95);
+      padding-top:48px;
       overflow:hidden;
     }
 
-    .export-card.post .card-mid{
-      padding-top:34px;
-    }
-
-    .export-card.story .card-mid{
-      padding-top:52px;
-    }
-
-    .card-excerpt{
+    .story-excerpt{
+      font-size:58px;
+      line-height:1.02;
       letter-spacing:-0.03em;
       font-weight:400;
+      max-width:7.7em;
       word-break:normal;
       overflow-wrap:break-word;
     }
 
-    .export-card.post .card-excerpt{
-      font-size:52px;
-      line-height:1.01;
-      max-width:8.2em;
-    }
-
-    .export-card.story .card-excerpt{
-      font-size:58px;
-      line-height:1.02;
-      max-width:7.7em;
-    }
-
-    .card-bottom{
+    .story-bottom{
       border-top:2px solid rgba(5,5,5,.95);
+      padding-top:28px;
       display:grid;
       grid-template-columns:1fr auto;
       gap:20px;
       align-items:end;
     }
 
-    .export-card.post .card-bottom{
-      padding-top:24px;
-    }
-
-    .export-card.story .card-bottom{
-      padding-top:30px;
-    }
-
-    .card-site-wrap{
-      overflow:hidden;
+    .story-site-wrap{
       max-width:100%;
+      overflow:hidden;
     }
 
-    .card-site{
+    .story-site{
+      font-size:54px;
       font-weight:700;
       letter-spacing:-0.04em;
       line-height:.95;
@@ -530,27 +476,11 @@
       max-width:100%;
     }
 
-    .export-card.post .card-site{
-      font-size:42px;
-    }
-
-    .export-card.story .card-site{
-      font-size:54px;
-    }
-
-    .card-meta{
-      text-align:right;
-      font-weight:400;
-    }
-
-    .export-card.post .card-meta{
-      font-size:22px;
-      line-height:1.15;
-    }
-
-    .export-card.story .card-meta{
+    .story-meta{
       font-size:24px;
       line-height:1.15;
+      text-align:right;
+      font-weight:400;
     }
 
     @media (max-width: 900px){
@@ -595,11 +525,6 @@
       .export-panel{
         width:100%;
         padding:10px;
-      }
-
-      .export-toolbar{
-        align-items:flex-start;
-        flex-direction:column;
       }
     }
   </style>
@@ -664,37 +589,36 @@
     <div class="export-panel">
       <div class="export-toolbar">
         <div class="export-toolbar-left">
-          <button type="button" id="btn-mode-post" class="active">Post 1080×1350</button>
-          <button type="button" id="btn-mode-story">Story 1080×1920</button>
+          <button type="button" id="btn-share">Share</button>
+          <button type="button" id="btn-download">Download PNG</button>
         </div>
         <div class="export-toolbar-left">
-          <button type="button" id="btn-download">Download PNG</button>
           <button type="button" id="btn-close">Close</button>
         </div>
       </div>
 
       <div class="export-stage">
-        <div class="export-card post" id="export-card">
-          <div class="card-topline">
-            <div class="card-kicker">
+        <div class="story-card" id="story-card">
+          <div class="story-top">
+            <div class="story-kicker">
               <div>BUCKFAST AND FURIOUS</div>
-              <div id="card-date">ARCHIVE</div>
+              <div id="story-date">ARCHIVE</div>
             </div>
 
-            <div class="card-title-wrap">
-              <div class="card-headline" id="card-title">TITLE</div>
+            <div class="story-title-wrap">
+              <div class="story-title" id="story-title">TITLE</div>
             </div>
           </div>
 
-          <div class="card-mid">
-            <div class="card-excerpt" id="card-excerpt">EXCERPT</div>
+          <div class="story-mid">
+            <div class="story-excerpt" id="story-excerpt">EXCERPT</div>
           </div>
 
-          <div class="card-bottom">
-            <div class="card-site-wrap">
-              <div class="card-site" id="card-site">buckfastandfurious.com</div>
+          <div class="story-bottom">
+            <div class="story-site-wrap">
+              <div class="story-site" id="story-site">buckfastandfurious.com</div>
             </div>
-            <div class="card-meta" id="card-meta">Archive<br>buckfastandfurious.com</div>
+            <div class="story-meta" id="story-meta">Story<br>buckfastandfurious.com</div>
           </div>
         </div>
       </div>
@@ -723,21 +647,19 @@
     const sectionMeta = document.getElementById("section-meta");
 
     const exportWrap = document.getElementById("export-wrap");
-    const exportCard = document.getElementById("export-card");
-    const cardTitle = document.getElementById("card-title");
-    const cardExcerpt = document.getElementById("card-excerpt");
-    const cardDate = document.getElementById("card-date");
-    const cardMeta = document.getElementById("card-meta");
-    const cardSite = document.getElementById("card-site");
+    const storyCard = document.getElementById("story-card");
+    const storyDate = document.getElementById("story-date");
+    const storyTitle = document.getElementById("story-title");
+    const storyExcerpt = document.getElementById("story-excerpt");
+    const storySite = document.getElementById("story-site");
+    const storyMeta = document.getElementById("story-meta");
 
-    const btnModePost = document.getElementById("btn-mode-post");
-    const btnModeStory = document.getElementById("btn-mode-story");
+    const btnShare = document.getElementById("btn-share");
     const btnDownload = document.getElementById("btn-download");
     const btnClose = document.getElementById("btn-close");
 
     let allEntries = [];
     let activeCategory = "All";
-    let currentMode = "post";
     let currentExportEntry = null;
 
     function makeRss2JsonUrl(feedUrl) {
@@ -776,17 +698,30 @@
       }
     }
 
-    function fitExportText() {
-      const titleWrap = exportCard.querySelector(".card-title-wrap");
-      const siteWrap = exportCard.querySelector(".card-site-wrap");
+    function fitStoryText() {
+      const titleWrap = storyCard.querySelector(".story-title-wrap");
+      const siteWrap = storyCard.querySelector(".story-site-wrap");
 
-      if (currentMode === "story") {
-        fitTextToBox(cardTitle, titleWrap, 132, 34);
-        fitTextToBox(cardSite, siteWrap, 54, 18);
-      } else {
-        fitTextToBox(cardTitle, titleWrap, 118, 30);
-        fitTextToBox(cardSite, siteWrap, 42, 18);
+      fitTextToBox(storyTitle, titleWrap, 132, 24);
+      fitTextToBox(storySite, siteWrap, 54, 16);
+    }
+
+    async function waitForFonts() {
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {}
       }
+    }
+
+    function formatStoryDate(dateString) {
+      const d = new Date(dateString);
+      if (isNaN(d)) return "ARCHIVE";
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).toUpperCase();
     }
 
     function getCategory(title) {
@@ -883,76 +818,82 @@
       });
     }
 
-    function formatCardDate(dateString) {
-      const d = new Date(dateString);
-      if (isNaN(d)) return "ARCHIVE";
-      return d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-      }).toUpperCase();
-    }
-
-    function setMode(mode) {
-      currentMode = mode;
-      exportCard.classList.remove("post", "story");
-      exportCard.classList.add(mode);
-
-      btnModePost.classList.toggle("active", mode === "post");
-      btnModeStory.classList.toggle("active", mode === "story");
-    }
-
-    function openExport(entry, mode) {
+    async function openStoryExport(entry) {
       currentExportEntry = entry;
-      setMode(mode);
 
-      const title = cleanText(entry.title || "Untitled");
-      const excerpt = truncate(
-        cleanText(entry.description || entry.content || ""),
-        mode === "story" ? 185 : 145
-      );
+      storyDate.textContent = formatStoryDate(entry.pubDate);
+      storyTitle.textContent = cleanText(entry.title || "Untitled");
+      storyExcerpt.textContent = truncate(cleanText(entry.description || ""), 200) || "New Buckfast-related article detected.";
+      storySite.textContent = "buckfastandfurious.com";
+      storyMeta.innerHTML = `${entry.category || "Story"}<br>buckfastandfurious.com`;
 
-      cardTitle.textContent = title;
-      cardTitle.style.fontSize = "";
-      cardExcerpt.textContent = excerpt || "New Buckfast-related article detected in the archive.";
-      cardDate.textContent = formatCardDate(entry.pubDate);
-      cardMeta.innerHTML = `${entry.category || "Archive"}<br>buckfastandfurious.com`;
-      cardSite.textContent = "buckfastandfurious.com";
+      storyTitle.style.fontSize = "";
+      storySite.style.fontSize = "";
 
       exportWrap.classList.add("active");
 
+      await waitForFonts();
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          fitExportText();
+          fitStoryText();
         });
       });
     }
 
-    async function downloadCard() {
+    async function buildStoryBlob() {
+      await waitForFonts();
+
+      storyTitle.style.fontSize = "";
+      storySite.style.fontSize = "";
+      fitStoryText();
+
+      await new Promise(resolve => requestAnimationFrame(resolve));
       await new Promise(resolve => requestAnimationFrame(resolve));
 
-      const canvas = await html2canvas(exportCard, {
+      const canvas = await html2canvas(storyCard, {
         scale: 2,
         backgroundColor: "#f35a08",
         useCORS: true,
         logging: false
       });
 
-      const link = document.createElement("a");
-      link.download = `buckfast-${currentMode}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve({ blob, canvas }), "image/png");
+      });
     }
 
-    btnModePost.addEventListener("click", () => {
-      if (currentExportEntry) openExport(currentExportEntry, "post");
+    btnDownload.addEventListener("click", async () => {
+      const { canvas } = await buildStoryBlob();
+      const link = document.createElement("a");
+      link.download = "buckfast-story.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     });
 
-    btnModeStory.addEventListener("click", () => {
-      if (currentExportEntry) openExport(currentExportEntry, "story");
-    });
+    btnShare.addEventListener("click", async () => {
+      try {
+        const { blob, canvas } = await buildStoryBlob();
 
-    btnDownload.addEventListener("click", downloadCard);
+        if (!blob) return;
+
+        const file = new File([blob], "buckfast-story.png", { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Buckfast Story"
+          });
+        } else {
+          const link = document.createElement("a");
+          link.download = "buckfast-story.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
 
     btnClose.addEventListener("click", () => {
       exportWrap.classList.remove("active");
@@ -1042,7 +983,7 @@
         });
 
         const cleanTitle = cleanText(entry.title || "");
-        const summary = truncate(cleanText(entry.description || ""), 180);
+        const summary = cleanText(entry.description || "").slice(0, 180);
 
         article.innerHTML = `
           <div class="entry-meta">
@@ -1058,7 +999,6 @@
             <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">Read source</a>
 
             <div class="entry-actions">
-              <button class="entry-export-btn entry-post-btn" type="button">Post</button>
               <button class="entry-export-btn entry-story-btn" type="button">Story</button>
             </div>
           </div>
@@ -1071,12 +1011,8 @@
           render(allEntries);
         });
 
-        article.querySelector(".entry-post-btn").addEventListener("click", () => {
-          openExport(entry, "post");
-        });
-
         article.querySelector(".entry-story-btn").addEventListener("click", () => {
-          openExport(entry, "story");
+          openStoryExport(entry);
         });
 
         feed.appendChild(article);

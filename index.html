@@ -45,6 +45,9 @@
       --line-strong:rgba(5,5,5,.9);
       --soft:rgba(5,5,5,.72);
       --max:1440px;
+      --story-w:1080px;
+      --story-h:1920px;
+      --story-preview-scale:0.32;
     }
 
     *{
@@ -336,7 +339,7 @@
       background:var(--bg);
       color:var(--ink);
       border:1px solid var(--ink);
-      width:min(96vw, 620px);
+      width:min(96vw, 640px);
       padding:14px;
     }
 
@@ -387,29 +390,38 @@
     .export-stage{
       display:flex;
       justify-content:center;
-      align-items:center;
+      align-items:flex-start;
       overflow:auto;
       max-height:78vh;
       background:rgba(5,5,5,.04);
       padding:12px;
     }
 
+    .story-preview-shell{
+      width:calc(var(--story-w) * var(--story-preview-scale));
+      height:calc(var(--story-h) * var(--story-preview-scale));
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+
     .story-card{
-      width:1080px;
-      height:1920px;
+      width:var(--story-w);
+      height:var(--story-h);
       background:#f35a08;
       color:#050505;
       border:2px solid rgba(5,5,5,.95);
-      padding:150px 92px 170px;
+      padding:110px 64px 110px;
       display:grid;
       grid-template-rows:auto 1fr auto;
-      gap:56px;
+      gap:36px;
       overflow:hidden;
+      transform:scale(var(--story-preview-scale));
+      transform-origin:top left;
     }
 
     .story-top{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:30px;
+      padding-top:22px;
     }
 
     .story-kicker{
@@ -417,7 +429,7 @@
       justify-content:space-between;
       align-items:flex-start;
       gap:20px;
-      margin-bottom:44px;
+      margin-bottom:28px;
       font-size:24px;
       line-height:1;
       font-weight:700;
@@ -428,7 +440,7 @@
     }
 
     .story-title-wrap{
-      height:620px;
+      height:700px;
       overflow:hidden;
     }
 
@@ -447,23 +459,23 @@
 
     .story-mid{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:38px;
+      padding-top:26px;
       overflow:hidden;
     }
 
     .story-excerpt{
-      font-size:50px;
-      line-height:1.03;
+      font-size:46px;
+      line-height:1.02;
       letter-spacing:-0.03em;
       font-weight:400;
-      max-width:8.6em;
+      max-width:9.6em;
       word-break:normal;
       overflow-wrap:break-word;
     }
 
     .story-bottom{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:24px;
+      padding-top:20px;
       display:grid;
       grid-template-columns:1fr auto;
       gap:20px;
@@ -476,7 +488,7 @@
     }
 
     .story-site{
-      font-size:40px;
+      font-size:34px;
       font-weight:700;
       letter-spacing:-0.04em;
       line-height:.95;
@@ -488,10 +500,21 @@
     }
 
     .story-meta{
-      font-size:22px;
+      font-size:20px;
       line-height:1.15;
       text-align:right;
       font-weight:400;
+    }
+
+    #export-render-root{
+      position:fixed;
+      left:-99999px;
+      top:0;
+      width:1080px;
+      height:1920px;
+      pointer-events:none;
+      opacity:0;
+      overflow:hidden;
     }
 
     @media (max-width: 900px){
@@ -542,7 +565,6 @@
 </head>
 <body>
   <main class="page">
-
     <header class="topbar">
       <div class="brand">Buckfast and Furious</div>
       <nav class="topnav" id="topnav"></nav>
@@ -593,7 +615,6 @@
         </p>
       </div>
     </footer>
-
   </main>
 
   <div class="export-wrap" id="export-wrap">
@@ -618,32 +639,36 @@
       </div>
 
       <div class="export-stage">
-        <div class="story-card" id="story-card">
-          <div class="story-top">
-            <div class="story-kicker">
-              <div class="story-kicker-left">BUCKFAST AND FURIOUS</div>
-              <div id="story-date">ARCHIVE</div>
+        <div class="story-preview-shell">
+          <div class="story-card" id="story-card">
+            <div class="story-top">
+              <div class="story-kicker">
+                <div class="story-kicker-left">BUCKFAST AND FURIOUS</div>
+                <div id="story-date">ARCHIVE</div>
+              </div>
+
+              <div class="story-title-wrap">
+                <div class="story-title" id="story-title">TITLE</div>
+              </div>
             </div>
 
-            <div class="story-title-wrap">
-              <div class="story-title" id="story-title">TITLE</div>
+            <div class="story-mid">
+              <div class="story-excerpt" id="story-excerpt">EXCERPT</div>
             </div>
-          </div>
 
-          <div class="story-mid">
-            <div class="story-excerpt" id="story-excerpt">EXCERPT</div>
-          </div>
-
-          <div class="story-bottom">
-            <div class="story-site-wrap">
-              <div class="story-site" id="story-site">buckfastandfurious.com</div>
+            <div class="story-bottom">
+              <div class="story-site-wrap">
+                <div class="story-site" id="story-site">buckfastandfurious.com</div>
+              </div>
+              <div class="story-meta" id="story-meta">Story<br>buckfastandfurious.com</div>
             </div>
-            <div class="story-meta" id="story-meta">Story<br>buckfastandfurious.com</div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <div id="export-render-root"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
@@ -673,6 +698,7 @@
     const storyExcerpt = document.getElementById("story-excerpt");
     const storySite = document.getElementById("story-site");
     const storyMeta = document.getElementById("story-meta");
+    const exportRenderRoot = document.getElementById("export-render-root");
 
     const btnShare = document.getElementById("btn-share");
     const btnDownload = document.getElementById("btn-download");
@@ -718,12 +744,14 @@
       }
     }
 
-    function fitStoryText() {
-      const titleWrap = storyCard.querySelector(".story-title-wrap");
-      const siteWrap = storyCard.querySelector(".story-site-wrap");
+    function fitStoryText(cardElement) {
+      const titleEl = cardElement.querySelector(".story-title");
+      const siteEl = cardElement.querySelector(".story-site");
+      const titleWrap = cardElement.querySelector(".story-title-wrap");
+      const siteWrap = cardElement.querySelector(".story-site-wrap");
 
-      fitTextToBox(storyTitle, titleWrap, 108, 22);
-      fitTextToBox(storySite, siteWrap, 40, 16);
+      fitTextToBox(titleEl, titleWrap, 96, 24);
+      fitTextToBox(siteEl, siteWrap, 34, 16);
     }
 
     async function waitForFonts() {
@@ -770,9 +798,7 @@
         t.includes("wound") ||
         t.includes("wounded") ||
         t.includes("abuse")
-      ) {
-        return "Violence";
-      }
+      ) return "Violence";
 
       if (
         t.includes("court") ||
@@ -787,9 +813,7 @@
         t.includes("crime") ||
         t.includes("arrest") ||
         t.includes("arrested")
-      ) {
-        return "Justice";
-      }
+      ) return "Justice";
 
       if (
         t.includes("music") ||
@@ -807,9 +831,7 @@
         t.includes("abbot") ||
         t.includes("monk") ||
         t.includes("monastery")
-      ) {
-        return "Soft";
-      }
+      ) return "Soft";
 
       return "Weird Buckfast";
     }
@@ -856,7 +878,7 @@
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          fitStoryText();
+          fitStoryText(storyCard);
         });
       });
     }
@@ -864,19 +886,36 @@
     async function buildStoryBlob() {
       await waitForFonts();
 
-      storyTitle.style.fontSize = "";
-      storySite.style.fontSize = "";
-      fitStoryText();
+      const clone = storyCard.cloneNode(true);
+      clone.style.transform = "none";
+      clone.style.width = "1080px";
+      clone.style.height = "1920px";
+      clone.style.position = "relative";
+      clone.style.left = "0";
+      clone.style.top = "0";
+
+      exportRenderRoot.innerHTML = "";
+      exportRenderRoot.appendChild(clone);
+
+      const cloneTitle = clone.querySelector(".story-title");
+      const cloneSite = clone.querySelector(".story-site");
+      cloneTitle.style.fontSize = "";
+      cloneSite.style.fontSize = "";
+      fitStoryText(clone);
 
       await new Promise(resolve => requestAnimationFrame(resolve));
       await new Promise(resolve => requestAnimationFrame(resolve));
 
-      const canvas = await html2canvas(storyCard, {
-        scale: 2,
+      const canvas = await html2canvas(clone, {
+        width: 1080,
+        height: 1920,
+        scale: 1,
         backgroundColor: "#f35a08",
         useCORS: true,
         logging: false
       });
+
+      exportRenderRoot.innerHTML = "";
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve({ blob, canvas }), "image/png");

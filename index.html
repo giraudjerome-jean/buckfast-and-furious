@@ -392,9 +392,12 @@
         });
       }
 
-      items.forEach(entry => {
-        const article = document.createElement("article");
-        article.className = "entry";
+items.forEach(entry => {
+
+  if ((entry.title || "").toLowerCase().includes("book")) return;
+
+  const article = document.createElement("article");
+  article.className = "entry";
 
         const date = new Date(entry.pubDate).toLocaleDateString("en-GB", {
           day: "2-digit",

@@ -152,24 +152,12 @@
     }
 
     @keyframes bounceDot {
-      0%, 100% {
-        transform: translateY(0) scale(1, 1);
-      }
-      10% {
-        transform: translateY(0) scale(1.08, 0.92);
-      }
-      28% {
-        transform: translateY(-16px) scale(0.96, 1.04);
-      }
-      42% {
-        transform: translateY(0) scale(1.05, 0.90);
-      }
-      56% {
-        transform: translateY(-6px) scale(0.98, 1.02);
-      }
-      70% {
-        transform: translateY(0) scale(1, 0.96);
-      }
+      0%, 100% { transform: translateY(0) scale(1, 1); }
+      10% { transform: translateY(0) scale(1.08, 0.92); }
+      28% { transform: translateY(-16px) scale(0.96, 1.04); }
+      42% { transform: translateY(0) scale(1.05, 0.90); }
+      56% { transform: translateY(-6px) scale(0.98, 1.02); }
+      70% { transform: translateY(0) scale(1, 0.96); }
     }
 
     .hero-text{
@@ -377,6 +365,25 @@
       padding:9px 10px 8px;
     }
 
+    .ig-share-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--ink);
+      background:var(--ink);
+      color:var(--bg);
+      font-family:"Radial", Arial, sans-serif;
+      font-size:12px;
+      line-height:1;
+      padding:9px 12px 8px;
+    }
+
+    .ig-share-icon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .export-stage{
       display:flex;
       justify-content:center;
@@ -393,16 +400,16 @@
       background:#f35a08;
       color:#050505;
       border:2px solid rgba(5,5,5,.95);
-      padding:110px 76px 110px;
+      padding:150px 92px 170px;
       display:grid;
       grid-template-rows:auto 1fr auto;
-      gap:48px;
+      gap:56px;
       overflow:hidden;
     }
 
     .story-top{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:28px;
+      padding-top:30px;
     }
 
     .story-kicker{
@@ -410,14 +417,18 @@
       justify-content:space-between;
       align-items:flex-start;
       gap:20px;
-      margin-bottom:50px;
-      font-size:28px;
+      margin-bottom:44px;
+      font-size:24px;
       line-height:1;
       font-weight:700;
     }
 
+    .story-kicker-left{
+      max-width:8.5em;
+    }
+
     .story-title-wrap{
-      height:760px;
+      height:620px;
       overflow:hidden;
     }
 
@@ -436,23 +447,23 @@
 
     .story-mid{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:48px;
+      padding-top:38px;
       overflow:hidden;
     }
 
     .story-excerpt{
-      font-size:58px;
-      line-height:1.02;
+      font-size:50px;
+      line-height:1.03;
       letter-spacing:-0.03em;
       font-weight:400;
-      max-width:7.7em;
+      max-width:8.6em;
       word-break:normal;
       overflow-wrap:break-word;
     }
 
     .story-bottom{
       border-top:2px solid rgba(5,5,5,.95);
-      padding-top:28px;
+      padding-top:24px;
       display:grid;
       grid-template-columns:1fr auto;
       gap:20px;
@@ -465,7 +476,7 @@
     }
 
     .story-site{
-      font-size:54px;
+      font-size:40px;
       font-weight:700;
       letter-spacing:-0.04em;
       line-height:.95;
@@ -477,7 +488,7 @@
     }
 
     .story-meta{
-      font-size:24px;
+      font-size:22px;
       line-height:1.15;
       text-align:right;
       font-weight:400;
@@ -589,7 +600,16 @@
     <div class="export-panel">
       <div class="export-toolbar">
         <div class="export-toolbar-left">
-          <button type="button" id="btn-share">Share</button>
+          <button type="button" id="btn-share" class="ig-share-btn">
+            <span class="ig-share-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                <circle cx="12" cy="12" r="4"></circle>
+                <circle cx="17.5" cy="6.5" r="1"></circle>
+              </svg>
+            </span>
+            <span>Share on Instagram</span>
+          </button>
           <button type="button" id="btn-download">Download PNG</button>
         </div>
         <div class="export-toolbar-left">
@@ -601,7 +621,7 @@
         <div class="story-card" id="story-card">
           <div class="story-top">
             <div class="story-kicker">
-              <div>BUCKFAST AND FURIOUS</div>
+              <div class="story-kicker-left">BUCKFAST AND FURIOUS</div>
               <div id="story-date">ARCHIVE</div>
             </div>
 
@@ -702,8 +722,8 @@
       const titleWrap = storyCard.querySelector(".story-title-wrap");
       const siteWrap = storyCard.querySelector(".story-site-wrap");
 
-      fitTextToBox(storyTitle, titleWrap, 132, 24);
-      fitTextToBox(storySite, siteWrap, 54, 16);
+      fitTextToBox(storyTitle, titleWrap, 108, 22);
+      fitTextToBox(storySite, siteWrap, 40, 16);
     }
 
     async function waitForFonts() {
@@ -823,7 +843,7 @@
 
       storyDate.textContent = formatStoryDate(entry.pubDate);
       storyTitle.textContent = cleanText(entry.title || "Untitled");
-      storyExcerpt.textContent = truncate(cleanText(entry.description || ""), 200) || "New Buckfast-related article detected.";
+      storyExcerpt.textContent = truncate(cleanText(entry.description || ""), 150) || "New Buckfast-related article detected.";
       storySite.textContent = "buckfastandfurious.com";
       storyMeta.innerHTML = `${entry.category || "Story"}<br>buckfastandfurious.com`;
 

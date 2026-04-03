@@ -279,6 +279,23 @@
       padding-bottom:2px;
     }
 
+    .entry-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .entry-export-btn{
+      border:1px solid var(--ink);
+      background:transparent;
+      color:var(--ink);
+      font-family:"Radial", Arial, sans-serif;
+      font-size:12px;
+      line-height:1;
+      padding:9px 10px 8px;
+    }
+
     .empty{
       padding:24px 0 30px;
       border-bottom:1px solid var(--line);
@@ -310,6 +327,230 @@
       line-height:1.35;
       color:var(--soft);
       font-weight:400;
+    }
+
+    .export-wrap{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      z-index:9999;
+    }
+
+    .export-wrap.active{
+      display:flex;
+    }
+
+    .export-panel{
+      background:var(--bg);
+      color:var(--ink);
+      border:1px solid var(--ink);
+      width:min(96vw, 580px);
+      padding:14px;
+    }
+
+    .export-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .export-toolbar-left{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .export-toolbar button{
+      border:1px solid var(--ink);
+      background:transparent;
+      color:var(--ink);
+      font-family:"Radial", Arial, sans-serif;
+      font-size:12px;
+      line-height:1;
+      padding:9px 10px 8px;
+    }
+
+    .export-toolbar button.active{
+      background:var(--ink);
+      color:var(--bg);
+    }
+
+    .export-stage{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:auto;
+      max-height:78vh;
+      background:rgba(5,5,5,.04);
+      padding:12px;
+    }
+
+    .export-card{
+      background:#f35a08;
+      color:#050505;
+      border:2px solid rgba(5,5,5,.95);
+      overflow:hidden;
+      display:grid;
+    }
+
+    .export-card.post{
+      width:1080px;
+      height:1350px;
+      padding:74px 66px 58px;
+      grid-template-rows:auto 1fr auto;
+      gap:38px;
+    }
+
+    .export-card.story{
+      width:1080px;
+      height:1920px;
+      padding:124px 76px 124px;
+      grid-template-rows:auto 1fr auto;
+      gap:52px;
+    }
+
+    .card-topline{
+      border-top:2px solid rgba(5,5,5,.95);
+      padding-top:22px;
+    }
+
+    .export-card.story .card-topline{
+      padding-top:28px;
+    }
+
+    .card-kicker{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:20px;
+      margin-bottom:34px;
+      font-size:28px;
+      line-height:1;
+      font-weight:700;
+    }
+
+    .export-card.story .card-kicker{
+      margin-bottom:56px;
+    }
+
+    .card-title-wrap{
+      width:100%;
+      overflow:hidden;
+    }
+
+    .export-card.post .card-title-wrap{
+      height:470px;
+    }
+
+    .export-card.story .card-title-wrap{
+      height:760px;
+    }
+
+    .card-headline{
+      display:block;
+      width:100%;
+      margin:0;
+      font-weight:700;
+      line-height:.9;
+      letter-spacing:-0.055em;
+      word-break:normal;
+      overflow-wrap:normal;
+      white-space:normal;
+      hyphens:none;
+      max-width:100%;
+    }
+
+    .card-mid{
+      border-top:2px solid rgba(5,5,5,.95);
+      overflow:hidden;
+    }
+
+    .export-card.post .card-mid{
+      padding-top:34px;
+    }
+
+    .export-card.story .card-mid{
+      padding-top:52px;
+    }
+
+    .card-excerpt{
+      letter-spacing:-0.03em;
+      font-weight:400;
+      word-break:normal;
+      overflow-wrap:break-word;
+    }
+
+    .export-card.post .card-excerpt{
+      font-size:52px;
+      line-height:1.01;
+      max-width:8.2em;
+    }
+
+    .export-card.story .card-excerpt{
+      font-size:58px;
+      line-height:1.02;
+      max-width:7.7em;
+    }
+
+    .card-bottom{
+      border-top:2px solid rgba(5,5,5,.95);
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:20px;
+      align-items:end;
+    }
+
+    .export-card.post .card-bottom{
+      padding-top:24px;
+    }
+
+    .export-card.story .card-bottom{
+      padding-top:30px;
+    }
+
+    .card-site-wrap{
+      overflow:hidden;
+      max-width:100%;
+    }
+
+    .card-site{
+      font-weight:700;
+      letter-spacing:-0.04em;
+      line-height:.95;
+      word-break:normal;
+      overflow-wrap:normal;
+      white-space:normal;
+      hyphens:none;
+      max-width:100%;
+    }
+
+    .export-card.post .card-site{
+      font-size:42px;
+    }
+
+    .export-card.story .card-site{
+      font-size:54px;
+    }
+
+    .card-meta{
+      text-align:right;
+      font-weight:400;
+    }
+
+    .export-card.post .card-meta{
+      font-size:22px;
+      line-height:1.15;
+    }
+
+    .export-card.story .card-meta{
+      font-size:24px;
+      line-height:1.15;
     }
 
     @media (max-width: 900px){
@@ -349,6 +590,16 @@
       .entry-title{
         font-size:32px;
         max-width:none;
+      }
+
+      .export-panel{
+        width:100%;
+        padding:10px;
+      }
+
+      .export-toolbar{
+        align-items:flex-start;
+        flex-direction:column;
       }
     }
   </style>
@@ -409,6 +660,48 @@
 
   </main>
 
+  <div class="export-wrap" id="export-wrap">
+    <div class="export-panel">
+      <div class="export-toolbar">
+        <div class="export-toolbar-left">
+          <button type="button" id="btn-mode-post" class="active">Post 1080×1350</button>
+          <button type="button" id="btn-mode-story">Story 1080×1920</button>
+        </div>
+        <div class="export-toolbar-left">
+          <button type="button" id="btn-download">Download PNG</button>
+          <button type="button" id="btn-close">Close</button>
+        </div>
+      </div>
+
+      <div class="export-stage">
+        <div class="export-card post" id="export-card">
+          <div class="card-topline">
+            <div class="card-kicker">
+              <div>BUCKFAST AND FURIOUS</div>
+              <div id="card-date">ARCHIVE</div>
+            </div>
+
+            <div class="card-title-wrap">
+              <div class="card-headline" id="card-title">TITLE</div>
+            </div>
+          </div>
+
+          <div class="card-mid">
+            <div class="card-excerpt" id="card-excerpt">EXCERPT</div>
+          </div>
+
+          <div class="card-bottom">
+            <div class="card-site-wrap">
+              <div class="card-site" id="card-site">buckfastandfurious.com</div>
+            </div>
+            <div class="card-meta" id="card-meta">Archive<br>buckfastandfurious.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     const FEED_URLS = [
       "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
@@ -429,11 +722,71 @@
     const topnav = document.getElementById("topnav");
     const sectionMeta = document.getElementById("section-meta");
 
+    const exportWrap = document.getElementById("export-wrap");
+    const exportCard = document.getElementById("export-card");
+    const cardTitle = document.getElementById("card-title");
+    const cardExcerpt = document.getElementById("card-excerpt");
+    const cardDate = document.getElementById("card-date");
+    const cardMeta = document.getElementById("card-meta");
+    const cardSite = document.getElementById("card-site");
+
+    const btnModePost = document.getElementById("btn-mode-post");
+    const btnModeStory = document.getElementById("btn-mode-story");
+    const btnDownload = document.getElementById("btn-download");
+    const btnClose = document.getElementById("btn-close");
+
     let allEntries = [];
     let activeCategory = "All";
+    let currentMode = "post";
+    let currentExportEntry = null;
 
     function makeRss2JsonUrl(feedUrl) {
       return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+    }
+
+    function decodeHtmlEntities(str) {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = str || "";
+      return txt.value;
+    }
+
+    function cleanText(text) {
+      return decodeHtmlEntities(text || "")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function truncate(text, max) {
+      if (!text) return "";
+      if (text.length <= max) return text;
+      return text.slice(0, max - 3).trim() + "...";
+    }
+
+    function fitTextToBox(el, box, maxSize, minSize) {
+      let size = maxSize;
+      el.style.fontSize = size + "px";
+
+      while (
+        size > minSize &&
+        (el.scrollHeight > box.clientHeight || el.scrollWidth > box.clientWidth)
+      ) {
+        size -= 2;
+        el.style.fontSize = size + "px";
+      }
+    }
+
+    function fitExportText() {
+      const titleWrap = exportCard.querySelector(".card-title-wrap");
+      const siteWrap = exportCard.querySelector(".card-site-wrap");
+
+      if (currentMode === "story") {
+        fitTextToBox(cardTitle, titleWrap, 132, 34);
+        fitTextToBox(cardSite, siteWrap, 54, 18);
+      } else {
+        fitTextToBox(cardTitle, titleWrap, 118, 30);
+        fitTextToBox(cardSite, siteWrap, 42, 18);
+      }
     }
 
     function getCategory(title) {
@@ -530,6 +883,87 @@
       });
     }
 
+    function formatCardDate(dateString) {
+      const d = new Date(dateString);
+      if (isNaN(d)) return "ARCHIVE";
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).toUpperCase();
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      exportCard.classList.remove("post", "story");
+      exportCard.classList.add(mode);
+
+      btnModePost.classList.toggle("active", mode === "post");
+      btnModeStory.classList.toggle("active", mode === "story");
+    }
+
+    function openExport(entry, mode) {
+      currentExportEntry = entry;
+      setMode(mode);
+
+      const title = cleanText(entry.title || "Untitled");
+      const excerpt = truncate(
+        cleanText(entry.description || entry.content || ""),
+        mode === "story" ? 185 : 145
+      );
+
+      cardTitle.textContent = title;
+      cardTitle.style.fontSize = "";
+      cardExcerpt.textContent = excerpt || "New Buckfast-related article detected in the archive.";
+      cardDate.textContent = formatCardDate(entry.pubDate);
+      cardMeta.innerHTML = `${entry.category || "Archive"}<br>buckfastandfurious.com`;
+      cardSite.textContent = "buckfastandfurious.com";
+
+      exportWrap.classList.add("active");
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          fitExportText();
+        });
+      });
+    }
+
+    async function downloadCard() {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      const canvas = await html2canvas(exportCard, {
+        scale: 2,
+        backgroundColor: "#f35a08",
+        useCORS: true,
+        logging: false
+      });
+
+      const link = document.createElement("a");
+      link.download = `buckfast-${currentMode}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    btnModePost.addEventListener("click", () => {
+      if (currentExportEntry) openExport(currentExportEntry, "post");
+    });
+
+    btnModeStory.addEventListener("click", () => {
+      if (currentExportEntry) openExport(currentExportEntry, "story");
+    });
+
+    btnDownload.addEventListener("click", downloadCard);
+
+    btnClose.addEventListener("click", () => {
+      exportWrap.classList.remove("active");
+    });
+
+    exportWrap.addEventListener("click", (e) => {
+      if (e.target === exportWrap) {
+        exportWrap.classList.remove("active");
+      }
+    });
+
     async function load() {
       let archive = [];
 
@@ -607,16 +1041,8 @@
           year: "numeric"
         });
 
-        const cleanTitle = (entry.title || "")
-          .replace(/<[^>]+>/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        const summary = (entry.description || "")
-          .replace(/<[^>]+>/g, "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 180);
+        const cleanTitle = cleanText(entry.title || "");
+        const summary = truncate(cleanText(entry.description || ""), 180);
 
         article.innerHTML = `
           <div class="entry-meta">
@@ -630,6 +1056,11 @@
             <div class="entry-summary">${summary}</div>
             <div class="entry-quote">“${summary.slice(0,120)}...”</div>
             <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">Read source</a>
+
+            <div class="entry-actions">
+              <button class="entry-export-btn entry-post-btn" type="button">Post</button>
+              <button class="entry-export-btn entry-story-btn" type="button">Story</button>
+            </div>
           </div>
         `;
 
@@ -638,6 +1069,14 @@
           activeCategory = entry.category;
           buildTopnav();
           render(allEntries);
+        });
+
+        article.querySelector(".entry-post-btn").addEventListener("click", () => {
+          openExport(entry, "post");
+        });
+
+        article.querySelector(".entry-story-btn").addEventListener("click", () => {
+          openExport(entry, "story");
         });
 
         feed.appendChild(article);

@@ -70,6 +70,14 @@
       text-decoration:none;
     }
 
+    button{
+      font:inherit;
+      color:inherit;
+      background:none;
+      border:none;
+      cursor:pointer;
+    }
+
     .page{
       width:min(calc(100% - 80px), var(--max));
       margin:0 auto;
@@ -78,7 +86,7 @@
 
     .topbar{
       display:grid;
-      grid-template-columns:1fr auto auto;
+      grid-template-columns:auto 1fr;
       gap:18px;
       align-items:center;
       border-bottom:1px solid var(--line-strong);
@@ -90,13 +98,32 @@
       line-height:1;
       font-weight:700;
       letter-spacing:-0.01em;
+      white-space:nowrap;
     }
 
-    .nav,
-    .status{
+    .topnav{
+      display:flex;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      gap:10px 18px;
+    }
+
+    .nav-btn{
       font-size:12px;
       line-height:1;
-      font-weight:400;
+      padding:0 0 2px;
+      border-bottom:1px solid transparent;
+      color:var(--soft);
+      transition:color .15s ease, border-color .15s ease;
+    }
+
+    .nav-btn:hover{
+      color:var(--ink);
+    }
+
+    .nav-btn.active{
+      color:var(--ink);
+      border-color:var(--ink);
     }
 
     .hero{
@@ -174,6 +201,10 @@
     .entry-tag{
       color:var(--soft);
       font-weight:400;
+    }
+
+    .entry-tag{
+      cursor:pointer;
     }
 
     .entry-body{
@@ -258,6 +289,10 @@
         gap:10px;
       }
 
+      .topnav{
+        justify-content:flex-start;
+      }
+
       .entry{
         grid-template-columns:1fr;
         gap:10px;
@@ -295,8 +330,7 @@
 
     <header class="topbar">
       <div class="brand">Buckfast and Furious</div>
-      <div class="nav">Archive / Incidents / Method</div>
-      <div class="status">Updated Daily</div>
+      <nav class="topnav" id="topnav"></nav>
     </header>
 
     <section class="hero">
@@ -327,17 +361,123 @@
 
   <script>
     const FEED_URLS = [
-  "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
-  "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
-  "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
-  "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
-];
+      "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
+      "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
+      "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
+      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
+    ];
+
+    const CATEGORIES = [
+      "All",
+      "Violence",
+      "Justice",
+      "Soft",
+      "Weird Buckfast"
+    ];
 
     const feed = document.getElementById("feed");
+    const topnav = document.getElementById("topnav");
     const sectionMeta = document.getElementById("section-meta");
+
+    let allEntries = [];
+    let activeCategory = "All";
 
     function makeRss2JsonUrl(feedUrl) {
       return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+    }
+
+    function getCategory(title) {
+      const t = (title || "").toLowerCase();
+
+      if (
+        t.includes("rape") ||
+        t.includes("sexual") ||
+        t.includes("threat") ||
+        t.includes("threaten") ||
+        t.includes("attack") ||
+        t.includes("assault") ||
+        t.includes("violent") ||
+        t.includes("violence") ||
+        t.includes("stab") ||
+        t.includes("stabbing") ||
+        t.includes("stabbed") ||
+        t.includes("knife") ||
+        t.includes("armed") ||
+        t.includes("weapon") ||
+        t.includes("bottle") ||
+        t.includes("kicked") ||
+        t.includes("hit") ||
+        t.includes("beaten") ||
+        t.includes("injured") ||
+        t.includes("wound") ||
+        t.includes("wounded") ||
+        t.includes("abuse")
+      ) {
+        return "Violence";
+      }
+
+      if (
+        t.includes("court") ||
+        t.includes("charged") ||
+        t.includes("jailed") ||
+        t.includes("sentence") ||
+        t.includes("sentenced") ||
+        t.includes("trial") ||
+        t.includes("guilty") ||
+        t.includes("convicted") ||
+        t.includes("police") ||
+        t.includes("crime") ||
+        t.includes("arrest") ||
+        t.includes("arrested")
+      ) {
+        return "Justice";
+      }
+
+      if (
+        t.includes("music") ||
+        t.includes("dj") ||
+        t.includes("resident advisor") ||
+        t.includes("festival") ||
+        t.includes("radio") ||
+        t.includes("mix") ||
+        t.includes("book") ||
+        t.includes("author") ||
+        t.includes("novel") ||
+        t.includes("publication") ||
+        t.includes("review") ||
+        t.includes("abbey") ||
+        t.includes("abbot") ||
+        t.includes("monk") ||
+        t.includes("monastery")
+      ) {
+        return "Soft";
+      }
+
+      return "Weird Buckfast";
+    }
+
+    function shouldHideEntry(title) {
+      const t = (title || "").toLowerCase();
+      if (t.includes("book")) return true;
+      if (t.includes("buckfast barbie")) return true;
+      return false;
+    }
+
+    function buildTopnav() {
+      topnav.innerHTML = "";
+
+      CATEGORIES.forEach(category => {
+        const btn = document.createElement("button");
+        btn.className = "nav-btn";
+        if (category === activeCategory) btn.classList.add("active");
+        btn.textContent = category;
+        btn.addEventListener("click", () => {
+          activeCategory = category;
+          buildTopnav();
+          render(allEntries);
+        });
+        topnav.appendChild(btn);
+      });
     }
 
     async function load() {
@@ -350,20 +490,20 @@
         archive = [];
       }
 
-      let allItems = [];
+      let mergedItems = [];
 
       for (const feedUrl of FEED_URLS) {
         try {
           const res = await fetch(makeRss2JsonUrl(feedUrl));
           const data = await res.json();
           const items = Array.isArray(data.items) ? data.items : [];
-          allItems = allItems.concat(items);
+          mergedItems = mergedItems.concat(items);
         } catch {
           // ignore failed feed and continue
         }
       }
 
-      allItems.forEach(item => {
+      mergedItems.forEach(item => {
         if (!archive.find(a => a.link === item.link)) {
           archive.unshift(item);
         }
@@ -371,33 +511,45 @@
 
       archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-      render(archive);
+      allEntries = archive
+        .filter(entry => !shouldHideEntry(entry.title))
+        .map(entry => ({
+          ...entry,
+          category: getCategory(entry.title)
+        }));
+
+      buildTopnav();
+      render(allEntries);
     }
 
     function render(items) {
       feed.innerHTML = "";
 
-      if (!items.length) {
-        feed.innerHTML = `<div class="empty">No incidents yet.</div>`;
-        sectionMeta.textContent = "No new entries";
+      let visibleItems = items;
+
+      if (activeCategory !== "All") {
+        visibleItems = items.filter(item => item.category === activeCategory);
+      }
+
+      if (!visibleItems.length) {
+        feed.innerHTML = `<div class="empty">No incidents in this category yet.</div>`;
+        sectionMeta.textContent = activeCategory === "All" ? "No new entries" : activeCategory;
         return;
       }
 
-      const latestDate = items[0]?.pubDate;
+      const latestDate = visibleItems[0]?.pubDate;
       if (latestDate) {
         const d = new Date(latestDate);
-        sectionMeta.textContent = d.toLocaleString("en-GB", {
+        const monthYear = d.toLocaleString("en-GB", {
           month: "long",
           year: "numeric"
         });
+        sectionMeta.textContent = activeCategory === "All" ? monthYear : `${activeCategory} / ${monthYear}`;
       }
 
-items.forEach(entry => {
-
-  if ((entry.title || "").toLowerCase().includes("book")) return;
-
-  const article = document.createElement("article");
-  article.className = "entry";
+      visibleItems.forEach(entry => {
+        const article = document.createElement("article");
+        article.className = "entry";
 
         const date = new Date(entry.pubDate).toLocaleDateString("en-GB", {
           day: "2-digit",
@@ -415,7 +567,7 @@ items.forEach(entry => {
           <div class="entry-meta">
             <div class="entry-date">${date}</div>
             <div class="entry-source">Source feed</div>
-            <div class="entry-tag">Archive</div>
+            <div class="entry-tag">${entry.category}</div>
           </div>
 
           <div class="entry-body">
@@ -425,6 +577,13 @@ items.forEach(entry => {
             <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">Read source</a>
           </div>
         `;
+
+        const tag = article.querySelector(".entry-tag");
+        tag.addEventListener("click", () => {
+          activeCategory = entry.category;
+          buildTopnav();
+          render(allEntries);
+        });
 
         feed.appendChild(article);
       });

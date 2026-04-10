@@ -1049,7 +1049,10 @@
       allEntries = archive
         .filter(entry => !shouldHideEntry(entry))
         .filter(entry => {
-          const key = ((entry.link || "") + "||" + (entry.title || "")).toLowerCase().trim();
+          const key = (entry.title || "")
+  .toLowerCase()
+  .replace(/[^a-z0-9]/g, "")
+  .slice(0, 80);
           if (!key) return false;
           if (seen.has(key)) return false;
           seen.add(key);

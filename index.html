@@ -440,9 +440,11 @@
     }
 
     .story-title-wrap{
-      height:700px;
-      overflow:hidden;
-    }
+  max-height:700px;
+  overflow:hidden;
+  display:flex;
+  align-items:flex-start;
+}
 
     .story-title{
       width:100%;
@@ -836,12 +838,59 @@
       return "Weird Buckfast";
     }
 
-    function shouldHideEntry(title) {
-      const t = (title || "").toLowerCase();
-      if (t.includes("book")) return true;
-      if (t.includes("buckfast barbie")) return true;
-      return false;
-    }
+    function shouldHideEntry(entry) {
+  const title = (entry.title || "").toLowerCase();
+  const desc = (entry.description || "").toLowerCase();
+  const link = (entry.link || "").toLowerCase();
+  const text = `${title} ${desc} ${link}`;
+
+  const blockedPhrases = [
+    "stobaza",
+    "aluminum foil",
+    "burner covers",
+    "heat resistant liners",
+    "oil proof",
+    "personalised bottle label",
+    "personalized bottle label",
+    "bottle label sticker",
+    "custom gift",
+    "buy now",
+    "shop now",
+    "free shipping",
+    "product review",
+    "price comparison",
+    "coupon",
+    "promo code",
+    "pack of",
+    "40pcs",
+    "set of"
+  ];
+
+  const blockedDomains = [
+    "etsy.com",
+    "ebay.",
+    "amazon.",
+    "walmart.",
+    "aliexpress.",
+    "temu.",
+    "shein.",
+    "shopify.com"
+  ];
+
+  if (title.includes("book")) return true;
+  if (title.includes("buckfast barbie")) return true;
+
+  if (blockedPhrases.some(p => text.includes(p))) return true;
+  if (blockedDomains.some(d => link.includes(d))) return true;
+
+  const looksLikeProductSpam =
+    /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||
+    /\b(custom|personalised|personalized|gift|sticker|label|foil|burner|liner)\b/.test(text);
+
+  if (looksLikeProductSpam) return true;
+
+  return false;
+}
 
     function buildTopnav() {
       topnav.innerHTML = "";

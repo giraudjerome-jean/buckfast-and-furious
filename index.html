@@ -1044,24 +1044,43 @@
 
             archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-      const seen = new Set();
+const seenLinks = new Set();
+const seenTitles = new Set();
 
-      allEntries = archive
-        .filter(entry => !shouldHideEntry(entry))
-        .filter(entry => {
-          const key = (entry.title || "")
-  .toLowerCase()
-  .replace(/[^a-z0-9]/g, "")
-  .slice(0, 80);
-          if (!key) return false;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        })
-        .map(entry => ({
-          ...entry,
-          category: getCategory(entry.title)
-        }));
+allEntries = archive
+  .filter(entry => !shouldHideEntry(entry))
+  .filter(entry => {
+    const rawLink = (entry.link || "").trim().toLowerCase();
+    const normalizedLink = rawLink
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[?#].*$/, "")
+      .replace(/\/$/, "");
+
+    const normalizedTitle = (entry.title || "")
+      .toLowerCase()
+      .replace(/&amp;/g, "and")
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 120);
+
+    if (normalizedLink) {
+      if (seenLinks.has(normalizedLink)) return false;
+      seenLinks.add(normalizedLink);
+      return true;
+    }
+
+    if (normalizedTitle) {
+      if (seenTitles.has(normalizedTitle)) return false;
+      seenTitles.add(normalizedTitle);
+      return true;
+    }
+
+    return false;
+  })
+  .map(entry => ({
+    ...entry,
+    category: getCategory(entry.title)
+  }));
 
       buildTopnav();
       render(allEntries);

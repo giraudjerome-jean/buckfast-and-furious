@@ -109,9 +109,11 @@
       justify-content:flex-end;
       flex-wrap:wrap;
       gap:10px 18px;
+      align-items:center;
     }
 
-    .nav-btn{
+    .nav-btn,
+    .lang-btn{
       font-size:12px;
       line-height:1;
       padding:0 0 2px;
@@ -120,11 +122,13 @@
       transition:color .15s ease, border-color .15s ease;
     }
 
-    .nav-btn:hover{
+    .nav-btn:hover,
+    .lang-btn:hover{
       color:var(--ink);
     }
 
-    .nav-btn.active{
+    .nav-btn.active,
+    .lang-btn.active{
       color:var(--ink);
       border-color:var(--ink);
     }
@@ -440,24 +444,24 @@
     }
 
     .story-title-wrap{
-  max-height:700px;
-  overflow:hidden;
-  display:flex;
-  align-items:flex-start;
-}
+      max-height:700px;
+      overflow:hidden;
+      display:flex;
+      align-items:flex-start;
+    }
 
     .story-title{
-  width:100%;
-  margin:0;
-  font-weight:700;
-  line-height:.9;
-  letter-spacing:-0.055em;
-  word-break:break-word;
-  overflow-wrap:anywhere;
-  white-space:normal;
-  hyphens:none;
-  max-width:100%;
-}
+      width:100%;
+      margin:0;
+      font-weight:700;
+      line-height:.9;
+      letter-spacing:-0.055em;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+      white-space:normal;
+      hyphens:none;
+      max-width:100%;
+    }
 
     .story-mid{
       border-top:2px solid rgba(5,5,5,.95);
@@ -596,13 +600,13 @@
         </svg>
       </div>
 
-      <div class="hero-text">
+      <div class="hero-text" id="hero-text">
         Daily crime reports, odd news and cultural fallout linked to Buckfast.
       </div>
     </section>
 
     <section class="section-head">
-      <div class="section-title">Latest incidents</div>
+      <div class="section-title" id="section-title">Latest incidents</div>
       <div class="section-meta" id="section-meta">Live feed</div>
     </section>
 
@@ -610,8 +614,8 @@
 
     <footer class="footer">
       <div class="footer-block">
-        <h3>About</h3>
-        <p>
+        <h3 id="about-title">About</h3>
+        <p id="about-text">
           Buckfast and Furious collects and indexes daily news items involving Buckfast.
           Each entry includes a short summary, a short excerpt and a direct link to the original article.
         </p>
@@ -631,7 +635,7 @@
                 <circle cx="17.5" cy="6.5" r="1"></circle>
               </svg>
             </span>
-            <span>Share on Instagram</span>
+            <span id="share-label">Share on Instagram</span>
           </button>
           <button type="button" id="btn-download">Download PNG</button>
         </div>
@@ -674,6 +678,65 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
+    const UI = {
+      en: {
+        lang: "en",
+        heroText: "Daily crime reports, odd news and cultural fallout linked to Buckfast.",
+        sectionTitle: "Latest incidents",
+        liveFeed: "Live feed",
+        aboutTitle: "About",
+        aboutText: "Buckfast and Furious collects and indexes daily news items involving Buckfast. Each entry includes a short summary, a short excerpt and a direct link to the original article.",
+        share: "Share on Instagram",
+        download: "Download PNG",
+        close: "Close",
+        sourceFeed: "Source feed",
+        readSource: "Read source",
+        story: "Story",
+        noIncidents: "No incidents in this category yet.",
+        noNewEntries: "No new entries",
+        archive: "ARCHIVE",
+        fallbackExcerpt: "New Buckfast-related article detected.",
+        storyLabel: "Story",
+        switchLabel: "FR",
+        categories: {
+          "All": "All",
+          "Violence": "Violence",
+          "Justice": "Justice",
+          "Soft": "Soft",
+          "Weird Buckfast": "Weird Buckfast"
+        },
+        locale: "en-GB"
+      },
+      fr: {
+        lang: "fr",
+        heroText: "Revue quotidienne des faits divers, nouvelles étranges et retombées culturelles liées à Buckfast.",
+        sectionTitle: "Derniers incidents",
+        liveFeed: "Flux en direct",
+        aboutTitle: "À propos",
+        aboutText: "Buckfast and Furious collecte et indexe chaque jour des articles liés à Buckfast. Chaque entrée comprend un court résumé, un court extrait et un lien direct vers l’article d’origine.",
+        share: "Partager sur Instagram",
+        download: "Télécharger le PNG",
+        close: "Fermer",
+        sourceFeed: "Flux source",
+        readSource: "Lire la source",
+        story: "Story",
+        noIncidents: "Aucun incident dans cette catégorie pour le moment.",
+        noNewEntries: "Aucune nouvelle entrée",
+        archive: "ARCHIVE",
+        fallbackExcerpt: "Nouvel article détecté lié à Buckfast.",
+        storyLabel: "Story",
+        switchLabel: "EN",
+        categories: {
+          "All": "Tous",
+          "Violence": "Violence",
+          "Justice": "Justice",
+          "Soft": "Soft",
+          "Weird Buckfast": "Buckfast bizarre"
+        },
+        locale: "fr-FR"
+      }
+    };
+
     const FEED_URLS = [
       "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
       "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
@@ -709,6 +772,11 @@
     let allEntries = [];
     let activeCategory = "All";
     let currentExportEntry = null;
+    let currentLang = localStorage.getItem("buckfast_lang") || "en";
+
+    function t(key) {
+      return UI[currentLang][key];
+    }
 
     function makeRss2JsonUrl(feedUrl) {
       return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
@@ -766,8 +834,8 @@
 
     function formatStoryDate(dateString) {
       const d = new Date(dateString);
-      if (isNaN(d)) return "ARCHIVE";
-      return d.toLocaleDateString("en-GB", {
+      if (isNaN(d)) return t("archive");
+      return d.toLocaleDateString(UI[currentLang].locale, {
         day: "2-digit",
         month: "short",
         year: "numeric"
@@ -838,67 +906,78 @@
       return "Weird Buckfast";
     }
 
-function shouldHideEntry(entry) {
-  const title = (entry.title || "").toLowerCase();
-  const desc = (entry.description || "").toLowerCase();
-  const link = (entry.link || "").toLowerCase();
-  const text = `${title} ${desc} ${link}`;
+    function shouldHideEntry(entry) {
+      const title = (entry.title || "").toLowerCase();
+      const desc = (entry.description || "").toLowerCase();
+      const link = (entry.link || "").toLowerCase();
+      const text = `${title} ${desc} ${link}`;
 
-  const blockedPhrases = [
-    "stobaza",
-    "aluminum foil",
-    "burner covers",
-    "heat resistant liners",
-    "oil proof",
-    "personalised bottle label",
-    "personalized bottle label",
-    "bottle label sticker",
-    "custom gift",
-    "buy now",
-    "shop now",
-    "free shipping",
-    "product review",
-    "price comparison",
-    "coupon",
-    "promo code",
-    "pack of",
-    "40pcs",
-    "set of"
-  ];
+      const blockedPhrases = [
+        "stobaza",
+        "aluminum foil",
+        "burner covers",
+        "heat resistant liners",
+        "oil proof",
+        "personalised bottle label",
+        "personalized bottle label",
+        "bottle label sticker",
+        "custom gift",
+        "buy now",
+        "shop now",
+        "free shipping",
+        "product review",
+        "price comparison",
+        "coupon",
+        "promo code",
+        "pack of",
+        "40pcs",
+        "set of"
+      ];
 
-  const blockedDomains = [
-    "etsy.com",
-    "ebay.",
-    "amazon.",
-    "walmart.",
-    "aliexpress.",
-    "temu.",
-    "shein.",
-    "shopify.com"
-  ];
+      const blockedDomains = [
+        "etsy.com",
+        "ebay.",
+        "amazon.",
+        "walmart.",
+        "aliexpress.",
+        "temu.",
+        "shein.",
+        "shopify.com"
+      ];
 
-  const blockedStreetCases = [
-    "buckfast way",
-    "abbey road - buckfast way",
-    "gas main works",
-    "west bridgford"
-  ];
+      const blockedStreetCases = [
+        "buckfast way",
+        "abbey road - buckfast way",
+        "gas main works",
+        "west bridgford"
+      ];
 
-  if (title.includes("book")) return true;
-  if (title.includes("buckfast barbie")) return true;
+      if (title.includes("book")) return true;
+      if (title.includes("buckfast barbie")) return true;
 
-  if (blockedPhrases.some(p => text.includes(p))) return true;
-  if (blockedDomains.some(d => link.includes(d))) return true;
-  if (blockedStreetCases.some(p => text.includes(p))) return true;
+      if (blockedPhrases.some(p => text.includes(p))) return true;
+      if (blockedDomains.some(d => link.includes(d))) return true;
+      if (blockedStreetCases.some(p => text.includes(p))) return true;
 
-  const looksLikeProductSpam =
-    /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||
-    /\b(custom|personalised|personalized|gift|sticker|label|foil|burner|liner)\b/.test(text);
+      const looksLikeProductSpam =
+        /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||
+        /\b(custom|personalised|personalized|gift|sticker|label|foil|burner|liner)\b/.test(text);
 
-  if (looksLikeProductSpam) return true;
+      if (looksLikeProductSpam) return true;
 
-  return false;
-}
+      return false;
+    }
+
+    function applyStaticLanguage() {
+      document.documentElement.lang = UI[currentLang].lang;
+      document.getElementById("hero-text").textContent = t("heroText");
+      document.getElementById("section-title").textContent = t("sectionTitle");
+      document.getElementById("about-title").textContent = t("aboutTitle");
+      document.getElementById("about-text").textContent = t("aboutText");
+      document.getElementById("share-label").textContent = t("share");
+      btnDownload.textContent = t("download");
+      btnClose.textContent = t("close");
+    }
 
     function buildTopnav() {
       topnav.innerHTML = "";
@@ -907,7 +986,7 @@ function shouldHideEntry(entry) {
         const btn = document.createElement("button");
         btn.className = "nav-btn";
         if (category === activeCategory) btn.classList.add("active");
-        btn.textContent = category;
+        btn.textContent = UI[currentLang].categories[category];
         btn.addEventListener("click", () => {
           activeCategory = category;
           buildTopnav();
@@ -915,16 +994,110 @@ function shouldHideEntry(entry) {
         });
         topnav.appendChild(btn);
       });
+
+      const langBtn = document.createElement("button");
+      langBtn.className = "lang-btn active";
+      langBtn.textContent = UI[currentLang].switchLabel;
+      langBtn.addEventListener("click", async () => {
+        currentLang = currentLang === "en" ? "fr" : "en";
+        localStorage.setItem("buckfast_lang", currentLang);
+        applyStaticLanguage();
+        buildTopnav();
+        await ensureTranslationsForVisible();
+        render(allEntries);
+      });
+      topnav.appendChild(langBtn);
+    }
+
+    function getTranslateCache() {
+      try {
+        return JSON.parse(localStorage.getItem("buckfast_translate_cache") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function setTranslateCache(cache) {
+      try {
+        localStorage.setItem("buckfast_translate_cache", JSON.stringify(cache));
+      } catch {}
+    }
+
+    async function translateText(text, targetLang) {
+      const cleaned = cleanText(text);
+      if (!cleaned) return "";
+
+      if (targetLang === "en") return cleaned;
+
+      const cache = getTranslateCache();
+      const key = `${targetLang}::${cleaned}`;
+      if (cache[key]) return cache[key];
+
+      try {
+        const url =
+          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" +
+          encodeURIComponent(targetLang) +
+          "&dt=t&q=" +
+          encodeURIComponent(cleaned);
+
+        const res = await fetch(url);
+        const data = await res.json();
+        const translated = Array.isArray(data?.[0])
+          ? data[0].map(part => part[0]).join("")
+          : cleaned;
+
+        cache[key] = translated || cleaned;
+        setTranslateCache(cache);
+        return cache[key];
+      } catch {
+        return cleaned;
+      }
+    }
+
+    async function ensureTranslationsForVisible() {
+      if (currentLang !== "fr") return;
+
+      const items = activeCategory === "All"
+        ? allEntries
+        : allEntries.filter(item => item.category === activeCategory);
+
+      const slice = items.slice(0, 24);
+
+      await Promise.all(
+        slice.map(async entry => {
+          if (!entry.frTitle) {
+            entry.frTitle = await translateText(entry.title || "", "fr");
+          }
+          if (!entry.frDescription) {
+            entry.frDescription = await translateText(cleanText(entry.description || ""), "fr");
+          }
+        })
+      );
+    }
+
+    function getEntryTitle(entry) {
+      if (currentLang === "fr") return entry.frTitle || cleanText(entry.title || "");
+      return cleanText(entry.title || "");
+    }
+
+    function getEntrySummary(entry) {
+      if (currentLang === "fr") return entry.frDescription || cleanText(entry.description || "");
+      return cleanText(entry.description || "");
     }
 
     async function openStoryExport(entry) {
       currentExportEntry = entry;
 
+      if (currentLang === "fr") {
+        if (!entry.frTitle) entry.frTitle = await translateText(entry.title || "", "fr");
+        if (!entry.frDescription) entry.frDescription = await translateText(cleanText(entry.description || ""), "fr");
+      }
+
       storyDate.textContent = formatStoryDate(entry.pubDate);
-      storyTitle.textContent = cleanText(entry.title || "Untitled");
-      storyExcerpt.textContent = truncate(cleanText(entry.description || ""), 150) || "New Buckfast-related article detected.";
+      storyTitle.textContent = getEntryTitle(entry) || "Untitled";
+      storyExcerpt.textContent = truncate(getEntrySummary(entry), 150) || t("fallbackExcerpt");
       storySite.textContent = "buckfastandfurious.com";
-      storyMeta.innerHTML = `${entry.category || "Story"}<br>buckfastandfurious.com`;
+      storyMeta.innerHTML = `${UI[currentLang].categories[entry.category] || t("storyLabel")}<br>buckfastandfurious.com`;
 
       storyTitle.style.fontSize = "";
       storySite.style.fontSize = "";
@@ -1050,47 +1223,51 @@ function shouldHideEntry(entry) {
         }
       });
 
-            archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-const seenLinks = new Set();
-const seenTitles = new Set();
+      const seenLinks = new Set();
+      const seenTitles = new Set();
 
-allEntries = archive
-  .filter(entry => !shouldHideEntry(entry))
-  .filter(entry => {
-    const rawLink = (entry.link || "").trim().toLowerCase();
-    const normalizedLink = rawLink
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
-      .replace(/[?#].*$/, "")
-      .replace(/\/$/, "");
+      allEntries = archive
+        .filter(entry => !shouldHideEntry(entry))
+        .filter(entry => {
+          const rawLink = (entry.link || "").trim().toLowerCase();
+          const normalizedLink = rawLink
+            .replace(/^https?:\/\//, "")
+            .replace(/^www\./, "")
+            .replace(/[?#].*$/, "")
+            .replace(/\/$/, "");
 
-    const normalizedTitle = (entry.title || "")
-      .toLowerCase()
-      .replace(/&amp;/g, "and")
-      .replace(/[^a-z0-9]/g, "")
-      .slice(0, 60);
+          const normalizedTitle = (entry.title || "")
+            .toLowerCase()
+            .replace(/&amp;/g, "and")
+            .replace(/[^a-z0-9]/g, "")
+            .slice(0, 60);
 
-    if (normalizedLink) {
-      if (seenLinks.has(normalizedLink)) return false;
-      seenLinks.add(normalizedLink);
-      return true;
-    }
+          if (normalizedLink) {
+            if (seenLinks.has(normalizedLink)) return false;
+            seenLinks.add(normalizedLink);
+            return true;
+          }
 
-    if (normalizedTitle) {
-      if (seenTitles.has(normalizedTitle)) return false;
-      seenTitles.add(normalizedTitle);
-      return true;
-    }
+          if (normalizedTitle) {
+            if (seenTitles.has(normalizedTitle)) return false;
+            seenTitles.add(normalizedTitle);
+            return true;
+          }
 
-    return false;
-  })
-  .map(entry => ({
-    ...entry,
-    category: getCategory(entry.title)
-  }));
+          return false;
+        })
+        .map(entry => ({
+          ...entry,
+          category: getCategory(entry.title),
+          frTitle: "",
+          frDescription: ""
+        }));
 
+      applyStaticLanguage();
       buildTopnav();
+      await ensureTranslationsForVisible();
       render(allEntries);
     }
 
@@ -1104,62 +1281,67 @@ allEntries = archive
       }
 
       if (!visibleItems.length) {
-        feed.innerHTML = `<div class="empty">No incidents in this category yet.</div>`;
-        sectionMeta.textContent = activeCategory === "All" ? "No new entries" : activeCategory;
+        feed.innerHTML = `<div class="empty">${t("noIncidents")}</div>`;
+        sectionMeta.textContent = activeCategory === "All"
+          ? t("noNewEntries")
+          : UI[currentLang].categories[activeCategory];
         return;
       }
 
       const latestDate = visibleItems[0]?.pubDate;
       if (latestDate) {
         const d = new Date(latestDate);
-        const monthYear = d.toLocaleString("en-GB", {
+        const monthYear = d.toLocaleString(UI[currentLang].locale, {
           month: "long",
           year: "numeric"
         });
-        sectionMeta.textContent = activeCategory === "All" ? monthYear : `${activeCategory} / ${monthYear}`;
+        sectionMeta.textContent = activeCategory === "All"
+          ? monthYear
+          : `${UI[currentLang].categories[activeCategory]} / ${monthYear}`;
       }
 
       visibleItems.forEach(entry => {
         const article = document.createElement("article");
         article.className = "entry";
 
-        const date = new Date(entry.pubDate).toLocaleDateString("en-GB", {
+        const date = new Date(entry.pubDate).toLocaleDateString(UI[currentLang].locale, {
           day: "2-digit",
           month: "short",
           year: "numeric"
         });
 
-        const cleanTitle = cleanText(entry.title || "");
-        const summary = cleanText(entry.description || "").slice(0, 180);
+        const titleText = getEntryTitle(entry);
+        const summaryText = truncate(getEntrySummary(entry), 180);
 
         article.innerHTML = `
           <div class="entry-meta">
             <div class="entry-date">${date}</div>
-            <div class="entry-source">Source feed</div>
-            <div class="entry-tag">${entry.category}</div>
+            <div class="entry-source">${t("sourceFeed")}</div>
+            <div class="entry-tag">${UI[currentLang].categories[entry.category]}</div>
           </div>
 
           <div class="entry-body">
-            <h2 class="entry-title">${cleanTitle}</h2>
-            <div class="entry-summary">${summary}</div>
-            <div class="entry-quote">“${summary.slice(0,120)}...”</div>
-            <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">Read source</a>
+            <h2 class="entry-title">${titleText}</h2>
+            <div class="entry-summary">${summaryText}</div>
+            <div class="entry-quote">“${truncate(summaryText, 120)}”</div>
+            <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">${t("readSource")}</a>
 
             <div class="entry-actions">
-              <button class="entry-export-btn entry-story-btn" type="button">Story</button>
+              <button class="entry-export-btn entry-story-btn" type="button">${t("story")}</button>
             </div>
           </div>
         `;
 
         const tag = article.querySelector(".entry-tag");
-        tag.addEventListener("click", () => {
+        tag.addEventListener("click", async () => {
           activeCategory = entry.category;
           buildTopnav();
+          await ensureTranslationsForVisible();
           render(allEntries);
         });
 
-        article.querySelector(".entry-story-btn").addEventListener("click", () => {
-          openStoryExport(entry);
+        article.querySelector(".entry-story-btn").addEventListener("click", async () => {
+          await openStoryExport(entry);
         });
 
         feed.appendChild(article);

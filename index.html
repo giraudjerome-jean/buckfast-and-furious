@@ -838,7 +838,7 @@
       return "Weird Buckfast";
     }
 
-    function shouldHideEntry(entry) {
+function shouldHideEntry(entry) {
   const title = (entry.title || "").toLowerCase();
   const desc = (entry.description || "").toLowerCase();
   const link = (entry.link || "").toLowerCase();
@@ -877,7 +877,7 @@
     "shopify.com"
   ];
 
-     const blockedStreetCases = [
+  const blockedStreetCases = [
     "buckfast way",
     "abbey road - buckfast way",
     "gas main works",
@@ -889,6 +889,7 @@
 
   if (blockedPhrases.some(p => text.includes(p))) return true;
   if (blockedDomains.some(d => link.includes(d))) return true;
+  if (blockedStreetCases.some(p => text.includes(p))) return true;
 
   const looksLikeProductSpam =
     /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||

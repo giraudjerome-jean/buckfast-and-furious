@@ -1061,7 +1061,7 @@ allEntries = archive
       .toLowerCase()
       .replace(/&amp;/g, "and")
       .replace(/[^a-z0-9]/g, "")
-      .slice(0, 120);
+      .slice(0, 60);
 
     if (normalizedLink) {
       if (seenLinks.has(normalizedLink)) return false;

@@ -993,10 +993,19 @@
         }
       });
 
-      archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+            archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+      const seen = new Set();
 
       allEntries = archive
-        .filter(entry => !shouldHideEntry(entry.title))
+        .filter(entry => !shouldHideEntry(entry))
+        .filter(entry => {
+          const key = ((entry.link || "") + "||" + (entry.title || "")).toLowerCase().trim();
+          if (!key) return false;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
         .map(entry => ({
           ...entry,
           category: getCategory(entry.title)

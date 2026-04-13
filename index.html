@@ -103,9 +103,14 @@ h1{
 <script>
 
 const FEEDS = [
-"https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
-"https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
-"https://news.google.com/rss/search?q=buckfast"
+  "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
+  "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
+
+  // Google News (amélioré)
+  "https://news.google.com/rss/search?q=buckfast+crime&hl=en-GB&gl=GB&ceid=GB:en",
+
+  // 🔥 backup qui marche toujours
+  "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
 ];
 
 let allEntries=[];

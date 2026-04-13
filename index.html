@@ -121,14 +121,41 @@ return "https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(url);
 
 function shouldHide(entry){
 
-const t=(entry.title||"").toLowerCase();
+  const t = (entry.title || "").toLowerCase();
+  const d = (entry.description || "").toLowerCase();
+  const l = (entry.link || "").toLowerCase();
 
-if(t.includes("buckfast way")) return true;
-if(t.includes("gas works")) return true;
-if(t.includes("product")) return true;
-if(t.includes("buy")) return true;
+  const text = t + " " + d + " " + l;
 
-return false;
+  // ❌ produits / ecommerce
+  if (
+    text.includes("buy") ||
+    text.includes("price") ||
+    text.includes("shop") ||
+    text.includes("amazon") ||
+    text.includes("ebay") ||
+    text.includes("etsy") ||
+    text.includes("aliexpress") ||
+    text.includes("stobaza") ||
+    text.includes("foil") ||
+    text.includes("burner") ||
+    text.includes("liner") ||
+    text.includes("sticker") ||
+    text.includes("gift") ||
+    text.includes("custom") ||
+    text.includes("40pcs") ||
+    text.includes("pack of")
+  ) return true;
+
+  // ❌ faux positifs géographiques
+  if (
+    text.includes("buckfast way") ||
+    text.includes("gas works") ||
+    text.includes("road works") ||
+    text.includes("traffic lights")
+  ) return true;
+
+  return false;
 }
 
 async function load(){

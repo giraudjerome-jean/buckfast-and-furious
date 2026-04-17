@@ -139,32 +139,15 @@
     }
 
     .hero-logo{
-      width:min(560px, 100%);
+      width:min(720px, 100%);
     }
 
-    .hero-logo svg{
-      display:block;
-      width:100%;
-      height:auto;
-    }
-
-    .hero-logo .st0{
-      fill:var(--ink);
-    }
-
-    .hero-logo #dot-i{
-      transform-box:fill-box;
-      transform-origin:center bottom;
-      animation:bounceDot 1.5s ease-in-out infinite;
-    }
-
-    @keyframes bounceDot {
-      0%, 100% { transform: translateY(0) scale(1, 1); }
-      10% { transform: translateY(0) scale(1.08, 0.92); }
-      28% { transform: translateY(-16px) scale(0.96, 1.04); }
-      42% { transform: translateY(0) scale(1.05, 0.90); }
-      56% { transform: translateY(-6px) scale(0.98, 1.02); }
-      70% { transform: translateY(0) scale(1, 0.96); }
+    .hero-logo-text{
+      font-size:clamp(86px, 13vw, 170px);
+      line-height:.82;
+      letter-spacing:-0.065em;
+      font-weight:900;
+      max-width:4.2em;
     }
 
     .hero-text{
@@ -197,6 +180,7 @@
       line-height:1;
       color:var(--soft);
       font-weight:400;
+      text-transform:none;
     }
 
     .feed{
@@ -578,26 +562,7 @@
 
     <section class="hero">
       <div class="hero-logo">
-        <svg id="Calque_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 546 348" aria-label="Buckfast and Furious logo">
-          <path class="st0" d="M108.94,261.09l-.04,30.9c-.33,3.62-.88,7.14-3.13,9.86-3.19,3.86-8.13,5.47-12.78,3.94-4.04-1.33-6.32-4.6-6.66-8.88l-.07-35.81-18.93.02.03,36.16c.14,5.07.8,9.8,3.14,14.26,4.05,7.73,12.03,11.94,20.74,11.85,7.43-.07,13.79-3.62,17.5-10.19l.22,8.32,18.72-.12-.05-60.33s-18.69.02-18.69.02Z"/>
-          <path class="st0" d="M168.45,261.81c-6.31,1.69-11.33,5.7-14.2,11.13l-.13-11.87-18.76.02v60.39l18.82-.04.07-25.97c0-3.92,1.26-7.61,3.41-10.81,4.71-7.04,14.66-7.92,22.19-4.33l2.57-19.17c-4.72-1.42-9.36-.58-13.97.65h0Z"/>
-          <path class="st0" d="M184.87,261.24l-.02,60.22,18.87-.02-.02-60.3c-5.79,3.79-13,3.68-18.82.09h0Z"/>
-          <path id="dot-i" class="st0" d="M194.05,235.62c-6.32.13-11.07,4.88-11.07,11.31s4.25,10.88,10.54,11.29c7.07.46,12.28-4.85,12.05-11.72-.21-6.44-5.16-11.01-11.52-10.88Z"/>
-          <path class="st0" d="M315.02,261.12l-.02,30.43c-.18,2.7-.39,5.19-1.47,7.64-2.26,5.07-7.82,8.05-13.23,6.94-4.93-1.01-7.77-4.93-7.85-9.92l-.12-35.11h-18.79v38.05c.37,4.71,1.16,9.08,3.48,13.08,4.36,7.53,12.34,11.5,21.05,11.13,7.17-.3,13.67-3.92,16.76-10.33l.32,8.47h18.72l-.02-60.43-18.83.06h0Z"/>
-          <path class="st0" d="M385.92,286.92c-10.38-4.73-18.49-3.34-24.84-5.75-1.36-.52-2.44-1.29-2.55-2.63-.1-1.21.27-2.57,1.48-3.32,2.18-1.67,4.85-1.9,7.57-1.85,4.33.08,7.61,2.82,8.36,7.19l18.25-3.44c-.31-4.45-2.73-8.29-6.21-11.07-14.31-11.42-42.42-8.36-47.7,8.46-1.39,4.43-.75,9.77,1.6,13.73,7.15,12.02,26.9,9.56,33.55,12.84,1.61.79,2.32,2.52,1.44,4.16-.98,1.82-2.8,2.95-4.82,3.44-2.67.64-5.32.65-8.03.29-4.36-.58-7.38-3.9-8.03-8.22l-18.21,3.31c.07,3.69,1.66,7.06,4.07,9.88,8.69,10.21,25.03,10.87,37.07,8.04,5.2-1.22,9.57-3.79,13.09-7.64,3.47-3.8,4.55-8.64,4.06-13.65-.63-6.36-4.27-11.09-10.13-13.76h-.02Z"/>
-          <path class="st0" d="M227.79,260.86c-19.45,5.87-25.82,28.38-18.01,45.3,3.67,7.94,10.56,13.38,18.82,15.83,15.35,4.54,32.75-1.83,39.33-17.23,3.15-7.38,3.56-15.42,1.33-23.11-5.22-18.01-23.92-26.07-41.46-20.78h0ZM249.6,299.8c-2.47,4.35-6.6,6.56-11.14,6.57-4.67,0-8.69-2.61-11.05-7-2.75-5.14-2.63-11.61.27-16.66,2.37-4.13,6.33-6.45,10.84-6.47,4.55-.02,8.62,2.34,11.08,6.56,2.98,5.11,3.02,11.7,0,17Z"/>
-          <path class="st0" d="M182.18,84.78c3.07,2.46,4.58,5.76,5.49,9.61l18.34-3.56c-1.33-11.52-9.34-20.63-20.26-23.63-17.47-4.58-36.37,3.09-40.87,21.61-3.82,15.73,2.1,32.55,17.85,38.72,7.37,2.89,15.35,3.27,23,1.18,11.02-3.01,19.04-12.31,20.25-23.75l-18.33-3.54c-.8,3.72-2.23,6.69-4.97,9.36-6.46,4.49-15.31,2.03-18.45-5.15-2.21-5.06-2.18-10.96.28-15.9,3.31-6.65,11.5-8.74,17.66-4.95h0Z"/>
-          <path class="st0" d="M104.3,130.04c7.49-.09,14.31-3.68,17.61-10.37l.31,8.48h18.72l-.02-60.43-18.83.06-.04,30.43c-.19,3.71-.77,7.28-3.01,10.12-3.08,3.9-8.04,5.62-12.69,4.19-4.28-1.32-6.61-4.74-6.85-9.25l-.12-35.53h-18.78l-.02,37.2c0,14.19,9.27,25.26,23.71,25.09h.01Z"/>
-          <path class="st0" d="M51.61,128.11c4.28,0,8.15-.84,11.97-2.37,8.03-3.62,12.73-11.12,13.19-19.81.52-9.78-4.95-18.32-14.63-21.26,7.43-3.96,11.33-10.94,10.82-18.86-.51-8.09-5.08-14.64-12.66-17.69-5.1-2.25-10.54-3-16.28-3l-33.25-.04v83.09l40.83-.04v-.02ZM51.4,64.19c2.29,2.53,2.22,6.21.82,9.13-3.28,6.83-14.71,4-21.59,4.6l-.04-16.5c5.52.39,16.86-1.58,20.81,2.78h0ZM30.59,93.52l15.58.04c2.97,0,5.61.91,7.97,2.63,3.63,3.41,3.95,9.3.21,12.91-2.35,1.72-4.96,2.62-7.76,2.63l-16.01.07v-18.28h.01Z"/>
-          <path class="st0" d="M227.57,128.11l.16-24.86,18.85,24.9,22.53-.03-25.63-32.55,22.58-26.41.31,14.61,7.43.13.05,44.25h18.8l.06-44.31,15.08-.05.02-16-14.96-.09c-.32-1.92-.05-4.05.79-5.96,2.22-5.03,8.66-4.5,13.21-3.47l2.8-15.36c-12.28-3.44-28.59-1.67-33.6,11.94-1.54,4.18-2.05,8.35-2.28,12.83l-29.19.1-16.96,21.7-.07-46.29h-18.73l.02,84.96,18.69-.04h.04Z"/>
-          <path class="st0" d="M460.14,112.7c-3.32-.77-5.14-2.98-5.14-6.31l-.03-22.5,15.02-.11.02-15.99-14.94-.11-.17-18.79h-15.01c-.22,10.8-2.49,20.69-14.97,21.7l-.42,12.53c.81.11.78.44-.02.64h11.55l.25,25.44c.05,5.18,1.42,10.27,4.5,14.38,5.82,7.79,20.81,7.38,29.22,4.67v-16.15c-3.42.63-6.68,1.34-9.84.61h-.02Z"/>
-          <path class="st0" d="M420.35,74.45c-13.75-13.76-44.72-10.61-49.74,7.15-1.16,4.09-.58,8.92,1.38,12.65,7.6,14.45,33.23,9.18,35.55,15.23,1.71,4.45-6.48,7.5-13.88,5.96-3.93-.82-6.59-3.83-7.17-8.01l-18.08,3.21c-.4,1.37.18,2.57.42,4.03-2.17-.54-3.37-2.43-3.39-4.66l-.14-17.91c-.09-10.86-4.61-21.08-15.62-24.5-14.85-4.61-36.48-.36-40.8,17.15l17.8,3.8c1.32-5.36,6-8.46,11.41-8.01,2.81.23,5.42,1.13,6.82,3.71,1.18,2.18,1.63,4.7,1.41,7.26l-12.91-.04c-6.42-.02-12.56,1.61-18.18,4.54-5.63,2.93-8.51,8.56-8.38,14.88.16,7.78,4.44,14.61,11.72,17.49,11.57,3.82,22.89,1.23,29.93-9.24.9,4.73,3.38,8.76,7.87,10.15,4.85,1.5,10.07.58,14.6-1.41l.2-8.53c8.18,10.75,23.67,12.05,36.07,9.77,10.51-1.93,20.32-9.26,19.32-21.22-.52-6.19-3.81-11.18-9.42-13.94-12.23-6.02-27.26-3.44-28.13-8.61-.71-4.24,4.9-5.24,8.44-5.33,4.52-.11,8.19,2.64,8.92,7.13l18.07-3.39.02-.64c.11-3.13-1.72-6.24-4.13-8.66h.02ZM339.5,113.92c-3.34,2.5-8.09,3.11-11.69.81-2.02-1.29-2.26-4.07-1.85-6.46,1.13-6.56,15.15-7.28,20.42-6.09-.55,4.76-3.07,8.89-6.89,11.74h.01Z"/>
-          <path class="st0" d="M424.48,83.11l-.02.64c.81-.21.83-.53.02-.64Z"/>
-          <polygon class="st0" points="65.42 255.43 65.41 238.42 10.78 238.41 10.78 321.49 30.58 321.49 30.61 288 57.97 287.96 57.91 272.02 30.59 271.97 30.63 255.47 65.42 255.43"/>
-          <path class="st0" d="M19.58,225.55c10.95,3.49,22.13.56,28.88-9.25.51.83.69,1.86,1.05,2.86,3.29,9.31,14.1,9,21.59,5.56l-.02-13c-3.13.5-5.51-1.73-5.54-4.83l-.18-19.08c-.04-4.06-.91-7.88-2.48-11.53-2.49-5.81-7.07-9.91-13.1-11.8-9.49-2.98-23.33-2.2-31.56,3.9-4.55,3.25-7.92,7.66-9.22,13.23l17.82,3.76c1.45-5.56,6.25-8.49,11.82-7.93,3.59.36,6.62,2.34,7.34,6.08.41,1.55.61,3.16.57,4.91-11.37-.17-17.68-.85-28.34,3.1-7.2,2.67-11.59,8.86-11.21,16.71.37,7.82,4.98,14.88,12.6,17.31h-.02ZM26.06,205.15c1.11-6.52,15.14-7.27,20.46-6.08-.67,5.31-3.71,10.14-8.63,12.76-3.26,1.73-7.35,1.66-10.14-.38-1.9-1.39-2.09-3.92-1.68-6.3h0Z"/>
-          <path class="st0" d="M120.83,164.56c-9.85-4.01-22.6-1.2-28.09,8.7l-.12-8.64h-18.65v60.41h18.69l.11-30.14c.01-3.81.77-7.68,3.3-10.75,3.53-4.29,9.32-5.5,14.07-3.21,3.54,1.7,5.08,5.21,5.28,9.09l.08,35.02h18.8v-36.19c-.03-10.12-3.56-20.24-13.47-24.28h0Z"/>
-          <path class="st0" d="M201.27,140.06l-18.8.03-.09,33.42c-4.67-7.68-13.03-11.75-22.04-10.47-6.03.86-10.93,3.82-15.02,8.32-10.88,12.58-10.95,34.17-.12,46.82,7.56,8.83,19.85,11.36,30.15,5.74,3.12-1.7,5.08-4.09,7.11-6.9l.08,8.01,18.74-.02v-84.96h0ZM177.94,206.13c-2.81,2.91-6.29,4.04-10.15,3.68-3.31-.31-6.55-2.29-8.76-5.43-3.92-5.55-4.03-13.12-.24-18.77,2.38-3.54,5.92-5.65,10.01-5.8,3.95-.15,7.62,1.66,10.26,5.06,4.82,6.21,4.51,15.42-1.12,21.26h0Z"/>
-        </svg>
+        <div class="hero-logo-text">Buckfast<br>and<br>Furious</div>
       </div>
 
       <div class="hero-text" id="hero-text">
@@ -741,17 +706,7 @@
       "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
       "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
       "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
-
-      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+crime&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+attack&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+assault&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+police&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+court&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+arrest&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+jailed&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+stabbed&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+violence&hl=en-GB&gl=GB&ceid=GB:en"
+      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
     ];
 
     const CATEGORIES = [
@@ -781,7 +736,6 @@
 
     let allEntries = [];
     let activeCategory = "All";
-    let currentExportEntry = null;
     let currentLang = localStorage.getItem("buckfast_lang") || "en";
 
     function t(key) {
@@ -791,7 +745,7 @@
     function makeRss2JsonUrl(feedUrl) {
       return "https://api.rss2json.com/v1/api.json?rss_url=" +
         encodeURIComponent(feedUrl) +
-        "&count=50&cb=" + Date.now();
+        "&count=50";
     }
 
     function decodeHtmlEntities(str) {
@@ -855,64 +809,64 @@
     }
 
     function getCategory(title) {
-      const s = (title || "").toLowerCase();
+      const x = (title || "").toLowerCase();
 
       if (
-        s.includes("rape") ||
-        s.includes("sexual") ||
-        s.includes("threat") ||
-        s.includes("threaten") ||
-        s.includes("attack") ||
-        s.includes("assault") ||
-        s.includes("violent") ||
-        s.includes("violence") ||
-        s.includes("stab") ||
-        s.includes("stabbing") ||
-        s.includes("stabbed") ||
-        s.includes("knife") ||
-        s.includes("armed") ||
-        s.includes("weapon") ||
-        s.includes("bottle") ||
-        s.includes("kicked") ||
-        s.includes("hit") ||
-        s.includes("beaten") ||
-        s.includes("injured") ||
-        s.includes("wound") ||
-        s.includes("wounded") ||
-        s.includes("abuse")
+        x.includes("rape") ||
+        x.includes("sexual") ||
+        x.includes("threat") ||
+        x.includes("threaten") ||
+        x.includes("attack") ||
+        x.includes("assault") ||
+        x.includes("violent") ||
+        x.includes("violence") ||
+        x.includes("stab") ||
+        x.includes("stabbing") ||
+        x.includes("stabbed") ||
+        x.includes("knife") ||
+        x.includes("armed") ||
+        x.includes("weapon") ||
+        x.includes("bottle") ||
+        x.includes("kicked") ||
+        x.includes("hit") ||
+        x.includes("beaten") ||
+        x.includes("injured") ||
+        x.includes("wound") ||
+        x.includes("wounded") ||
+        x.includes("abuse")
       ) return "Violence";
 
       if (
-        s.includes("court") ||
-        s.includes("charged") ||
-        s.includes("jailed") ||
-        s.includes("sentence") ||
-        s.includes("sentenced") ||
-        s.includes("trial") ||
-        s.includes("guilty") ||
-        s.includes("convicted") ||
-        s.includes("police") ||
-        s.includes("crime") ||
-        s.includes("arrest") ||
-        s.includes("arrested")
+        x.includes("court") ||
+        x.includes("charged") ||
+        x.includes("jailed") ||
+        x.includes("sentence") ||
+        x.includes("sentenced") ||
+        x.includes("trial") ||
+        x.includes("guilty") ||
+        x.includes("convicted") ||
+        x.includes("police") ||
+        x.includes("crime") ||
+        x.includes("arrest") ||
+        x.includes("arrested")
       ) return "Justice";
 
       if (
-        s.includes("music") ||
-        s.includes("dj") ||
-        s.includes("resident advisor") ||
-        s.includes("festival") ||
-        s.includes("radio") ||
-        s.includes("mix") ||
-        s.includes("book") ||
-        s.includes("author") ||
-        s.includes("novel") ||
-        s.includes("publication") ||
-        s.includes("review") ||
-        s.includes("abbey") ||
-        s.includes("abbot") ||
-        s.includes("monk") ||
-        s.includes("monastery")
+        x.includes("music") ||
+        x.includes("dj") ||
+        x.includes("resident advisor") ||
+        x.includes("festival") ||
+        x.includes("radio") ||
+        x.includes("mix") ||
+        x.includes("book") ||
+        x.includes("author") ||
+        x.includes("novel") ||
+        x.includes("publication") ||
+        x.includes("review") ||
+        x.includes("abbey") ||
+        x.includes("abbot") ||
+        x.includes("monk") ||
+        x.includes("monastery")
       ) return "Soft";
 
       return "Weird Buckfast";
@@ -924,53 +878,42 @@
       const link = (entry.link || "").toLowerCase();
       const text = `${title} ${desc} ${link}`;
 
-      const blockedPhrases = [
-        "stobaza",
-        "aluminum foil",
-        "burner covers",
-        "heat resistant liners",
-        "oil proof",
-        "personalised bottle label",
-        "personalized bottle label",
-        "bottle label sticker",
-        "custom gift",
-        "buy now",
-        "shop now",
-        "free shipping",
-        "product review",
-        "price comparison",
-        "coupon",
-        "promo code",
-        "pack of",
-        "40pcs",
-        "set of"
-      ];
-
-      const blockedDomains = [
-        "etsy.com",
-        "ebay.",
-        "amazon.",
-        "walmart.",
-        "aliexpress.",
-        "temu.",
-        "shein.",
-        "shopify.com"
-      ];
-
-      const blockedStreetCases = [
-        "buckfast way",
-        "abbey road - buckfast way",
-        "gas main works",
-        "west bridgford"
-      ];
-
       if (title.includes("book")) return true;
       if (title.includes("buckfast barbie")) return true;
       if (text.includes("delirium nocturnum")) return true;
+      if (text.includes("buckfast tonic wine")) return true;
+      if (text.includes("wine originally from devon")) return true;
+      if (text.includes("personalised bottle label")) return true;
+      if (text.includes("personalized bottle label")) return true;
+      if (text.includes("bottle label sticker")) return true;
+      if (text.includes("aluminum foil")) return true;
+      if (text.includes("burner covers")) return true;
+      if (text.includes("heat resistant liners")) return true;
+      if (text.includes("stobaza")) return true;
+      if (text.includes("pack of")) return true;
+      if (text.includes("40pcs")) return true;
+      if (text.includes("set of")) return true;
+      if (text.includes("shop now")) return true;
+      if (text.includes("buy now")) return true;
+      if (text.includes("free shipping")) return true;
+      if (text.includes("coupon")) return true;
+      if (text.includes("promo code")) return true;
+      if (text.includes("price comparison")) return true;
+      if (text.includes("buckfast way")) return true;
+      if (text.includes("abbey road - buckfast way")) return true;
+      if (text.includes("gas main works")) return true;
+      if (text.includes("west bridgford")) return true;
 
-      if (blockedPhrases.some(p => text.includes(p))) return true;
-      if (blockedDomains.some(d => link.includes(d))) return true;
-      if (blockedStreetCases.some(p => text.includes(p))) return true;
+      if (
+        link.includes("etsy.com") ||
+        link.includes("ebay.") ||
+        link.includes("amazon.") ||
+        link.includes("walmart.") ||
+        link.includes("aliexpress.") ||
+        link.includes("temu.") ||
+        link.includes("shein.") ||
+        link.includes("shopify.com")
+      ) return true;
 
       const looksLikeProductSpam =
         /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||
@@ -1040,7 +983,6 @@
     async function translateText(text, targetLang) {
       const cleaned = cleanText(text);
       if (!cleaned) return "";
-
       if (targetLang === "en") return cleaned;
 
       const cache = getTranslateCache();
@@ -1090,18 +1032,18 @@
     }
 
     function getEntryTitle(entry) {
-      if (currentLang === "fr") return entry.frTitle || cleanText(entry.title || "");
-      return cleanText(entry.title || "");
+      return currentLang === "fr"
+        ? (entry.frTitle || cleanText(entry.title || ""))
+        : cleanText(entry.title || "");
     }
 
     function getEntrySummary(entry) {
-      if (currentLang === "fr") return entry.frDescription || cleanText(entry.description || "");
-      return cleanText(entry.description || "");
+      return currentLang === "fr"
+        ? (entry.frDescription || cleanText(entry.description || ""))
+        : cleanText(entry.description || "");
     }
 
     async function openStoryExport(entry) {
-      currentExportEntry = entry;
-
       if (currentLang === "fr") {
         if (!entry.frTitle) entry.frTitle = await translateText(entry.title || "", "fr");
         if (!entry.frDescription) entry.frDescription = await translateText(cleanText(entry.description || ""), "fr");
@@ -1177,7 +1119,6 @@
     btnShare.addEventListener("click", async () => {
       try {
         const { blob, canvas } = await buildStoryBlob();
-
         if (!blob) return;
 
         const file = new File([blob], "buckfast-story.png", { type: "image/png" });
@@ -1232,7 +1173,7 @@
       }
 
       mergedItems.forEach(item => {
-        if (!archive.find(a => a.link === item.link)) {
+        if (!archive.find(a => (a.link || "") === (item.link || ""))) {
           archive.unshift(item);
         }
       });
@@ -1258,19 +1199,13 @@
             .replace(/[^a-z0-9]/g, "")
             .slice(0, 60);
 
-          if (normalizedLink) {
-            if (seenLinks.has(normalizedLink)) return false;
-            seenLinks.add(normalizedLink);
-            return true;
-          }
+          if (normalizedLink && seenLinks.has(normalizedLink)) return false;
+          if (normalizedTitle && seenTitles.has(normalizedTitle)) return false;
 
-          if (normalizedTitle) {
-            if (seenTitles.has(normalizedTitle)) return false;
-            seenTitles.add(normalizedTitle);
-            return true;
-          }
+          if (normalizedLink) seenLinks.add(normalizedLink);
+          if (normalizedTitle) seenTitles.add(normalizedTitle);
 
-          return false;
+          return normalizedLink || normalizedTitle;
         })
         .map(entry => ({
           ...entry,
@@ -1326,6 +1261,7 @@
 
         const titleText = getEntryTitle(entry);
         const summaryText = truncate(getEntrySummary(entry), 180);
+        const quoteText = truncate(getEntrySummary(entry), 120);
 
         article.innerHTML = `
           <div class="entry-meta">
@@ -1337,7 +1273,7 @@
           <div class="entry-body">
             <h2 class="entry-title">${titleText}</h2>
             <div class="entry-summary">${summaryText}</div>
-            <div class="entry-quote">“${truncate(summaryText, 120)}”</div>
+            <div class="entry-quote">“${quoteText}”</div>
             <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">${t("readSource")}</a>
 
             <div class="entry-actions">

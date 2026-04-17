@@ -1210,15 +1210,17 @@
       let mergedItems = [];
 
       for (const feedUrl of FEED_URLS) {
-        try {
-          const res = await fetch(makeRss2JsonUrl(feedUrl));
-          const data = await res.json();
-          const items = Array.isArray(data.items) ? data.items : [];
-          mergedItems = mergedItems.concat(items);
-        } catch {
-          // ignore failed feed and continue
-        }
-      }
+  try {
+    const res = await fetch(makeRss2JsonUrl(feedUrl));
+    const data = await res.json();
+    const items = Array.isArray(data.items) ? data.items : [];
+    console.log("FEED:", feedUrl);
+    console.log("ITEMS:", items.length);
+    mergedItems = mergedItems.concat(items);
+  } catch {
+    // ignore failed feed and continue
+  }
+}
 
       mergedItems.forEach(item => {
         if (!archive.find(a => a.link === item.link)) {

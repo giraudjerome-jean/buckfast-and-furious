@@ -741,7 +741,17 @@
       "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
       "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
       "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
-      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
+
+      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+crime&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+attack&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+assault&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+police&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+court&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+arrest&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+jailed&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+stabbed&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast+violence&hl=en-GB&gl=GB&ceid=GB:en"
     ];
 
     const CATEGORIES = [
@@ -779,7 +789,9 @@
     }
 
     function makeRss2JsonUrl(feedUrl) {
-      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+      return "https://api.rss2json.com/v1/api.json?rss_url=" +
+        encodeURIComponent(feedUrl) +
+        "&count=50&cb=" + Date.now();
     }
 
     function decodeHtmlEntities(str) {
@@ -843,64 +855,64 @@
     }
 
     function getCategory(title) {
-      const t = (title || "").toLowerCase();
+      const s = (title || "").toLowerCase();
 
       if (
-        t.includes("rape") ||
-        t.includes("sexual") ||
-        t.includes("threat") ||
-        t.includes("threaten") ||
-        t.includes("attack") ||
-        t.includes("assault") ||
-        t.includes("violent") ||
-        t.includes("violence") ||
-        t.includes("stab") ||
-        t.includes("stabbing") ||
-        t.includes("stabbed") ||
-        t.includes("knife") ||
-        t.includes("armed") ||
-        t.includes("weapon") ||
-        t.includes("bottle") ||
-        t.includes("kicked") ||
-        t.includes("hit") ||
-        t.includes("beaten") ||
-        t.includes("injured") ||
-        t.includes("wound") ||
-        t.includes("wounded") ||
-        t.includes("abuse")
+        s.includes("rape") ||
+        s.includes("sexual") ||
+        s.includes("threat") ||
+        s.includes("threaten") ||
+        s.includes("attack") ||
+        s.includes("assault") ||
+        s.includes("violent") ||
+        s.includes("violence") ||
+        s.includes("stab") ||
+        s.includes("stabbing") ||
+        s.includes("stabbed") ||
+        s.includes("knife") ||
+        s.includes("armed") ||
+        s.includes("weapon") ||
+        s.includes("bottle") ||
+        s.includes("kicked") ||
+        s.includes("hit") ||
+        s.includes("beaten") ||
+        s.includes("injured") ||
+        s.includes("wound") ||
+        s.includes("wounded") ||
+        s.includes("abuse")
       ) return "Violence";
 
       if (
-        t.includes("court") ||
-        t.includes("charged") ||
-        t.includes("jailed") ||
-        t.includes("sentence") ||
-        t.includes("sentenced") ||
-        t.includes("trial") ||
-        t.includes("guilty") ||
-        t.includes("convicted") ||
-        t.includes("police") ||
-        t.includes("crime") ||
-        t.includes("arrest") ||
-        t.includes("arrested")
+        s.includes("court") ||
+        s.includes("charged") ||
+        s.includes("jailed") ||
+        s.includes("sentence") ||
+        s.includes("sentenced") ||
+        s.includes("trial") ||
+        s.includes("guilty") ||
+        s.includes("convicted") ||
+        s.includes("police") ||
+        s.includes("crime") ||
+        s.includes("arrest") ||
+        s.includes("arrested")
       ) return "Justice";
 
       if (
-        t.includes("music") ||
-        t.includes("dj") ||
-        t.includes("resident advisor") ||
-        t.includes("festival") ||
-        t.includes("radio") ||
-        t.includes("mix") ||
-        t.includes("book") ||
-        t.includes("author") ||
-        t.includes("novel") ||
-        t.includes("publication") ||
-        t.includes("review") ||
-        t.includes("abbey") ||
-        t.includes("abbot") ||
-        t.includes("monk") ||
-        t.includes("monastery")
+        s.includes("music") ||
+        s.includes("dj") ||
+        s.includes("resident advisor") ||
+        s.includes("festival") ||
+        s.includes("radio") ||
+        s.includes("mix") ||
+        s.includes("book") ||
+        s.includes("author") ||
+        s.includes("novel") ||
+        s.includes("publication") ||
+        s.includes("review") ||
+        s.includes("abbey") ||
+        s.includes("abbot") ||
+        s.includes("monk") ||
+        s.includes("monastery")
       ) return "Soft";
 
       return "Weird Buckfast";
@@ -954,6 +966,7 @@
 
       if (title.includes("book")) return true;
       if (title.includes("buckfast barbie")) return true;
+      if (text.includes("delirium nocturnum")) return true;
 
       if (blockedPhrases.some(p => text.includes(p))) return true;
       if (blockedDomains.some(d => link.includes(d))) return true;
@@ -987,9 +1000,10 @@
         btn.className = "nav-btn";
         if (category === activeCategory) btn.classList.add("active");
         btn.textContent = UI[currentLang].categories[category];
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           activeCategory = category;
           buildTopnav();
+          await ensureTranslationsForVisible();
           render(allEntries);
         });
         topnav.appendChild(btn);

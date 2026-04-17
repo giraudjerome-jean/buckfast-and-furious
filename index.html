@@ -742,10 +742,8 @@
       "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
       "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
       "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+crime&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+court&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+arrest&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast+police&hl=en-GB&gl=GB&ceid=GB:en"
+      "https://news.google.com/rss/search?q=buckfast%20crime&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast%20assault%20OR%20buckfast%20attack%20OR%20buckfast%20arrest&hl=en-GB&gl=GB&ceid=GB:en"
     ];
 
     const CATEGORIES = [
@@ -846,64 +844,64 @@
     }
 
     function getCategory(title) {
-      const x = (title || "").toLowerCase();
+      const v = (title || "").toLowerCase();
 
       if (
-        x.includes("rape") ||
-        x.includes("sexual") ||
-        x.includes("threat") ||
-        x.includes("threaten") ||
-        x.includes("attack") ||
-        x.includes("assault") ||
-        x.includes("violent") ||
-        x.includes("violence") ||
-        x.includes("stab") ||
-        x.includes("stabbing") ||
-        x.includes("stabbed") ||
-        x.includes("knife") ||
-        x.includes("armed") ||
-        x.includes("weapon") ||
-        x.includes("bottle") ||
-        x.includes("kicked") ||
-        x.includes("hit") ||
-        x.includes("beaten") ||
-        x.includes("injured") ||
-        x.includes("wound") ||
-        x.includes("wounded") ||
-        x.includes("abuse")
+        v.includes("rape") ||
+        v.includes("sexual") ||
+        v.includes("threat") ||
+        v.includes("threaten") ||
+        v.includes("attack") ||
+        v.includes("assault") ||
+        v.includes("violent") ||
+        v.includes("violence") ||
+        v.includes("stab") ||
+        v.includes("stabbing") ||
+        v.includes("stabbed") ||
+        v.includes("knife") ||
+        v.includes("armed") ||
+        v.includes("weapon") ||
+        v.includes("bottle") ||
+        v.includes("kicked") ||
+        v.includes("hit") ||
+        v.includes("beaten") ||
+        v.includes("injured") ||
+        v.includes("wound") ||
+        v.includes("wounded") ||
+        v.includes("abuse")
       ) return "Violence";
 
       if (
-        x.includes("court") ||
-        x.includes("charged") ||
-        x.includes("jailed") ||
-        x.includes("sentence") ||
-        x.includes("sentenced") ||
-        x.includes("trial") ||
-        x.includes("guilty") ||
-        x.includes("convicted") ||
-        x.includes("police") ||
-        x.includes("crime") ||
-        x.includes("arrest") ||
-        x.includes("arrested")
+        v.includes("court") ||
+        v.includes("charged") ||
+        v.includes("jailed") ||
+        v.includes("sentence") ||
+        v.includes("sentenced") ||
+        v.includes("trial") ||
+        v.includes("guilty") ||
+        v.includes("convicted") ||
+        v.includes("police") ||
+        v.includes("crime") ||
+        v.includes("arrest") ||
+        v.includes("arrested")
       ) return "Justice";
 
       if (
-        x.includes("music") ||
-        x.includes("dj") ||
-        x.includes("resident advisor") ||
-        x.includes("festival") ||
-        x.includes("radio") ||
-        x.includes("mix") ||
-        x.includes("book") ||
-        x.includes("author") ||
-        x.includes("novel") ||
-        x.includes("publication") ||
-        x.includes("review") ||
-        x.includes("abbey") ||
-        x.includes("abbot") ||
-        x.includes("monk") ||
-        x.includes("monastery")
+        v.includes("music") ||
+        v.includes("dj") ||
+        v.includes("resident advisor") ||
+        v.includes("festival") ||
+        v.includes("radio") ||
+        v.includes("mix") ||
+        v.includes("book") ||
+        v.includes("author") ||
+        v.includes("novel") ||
+        v.includes("publication") ||
+        v.includes("review") ||
+        v.includes("abbey") ||
+        v.includes("abbot") ||
+        v.includes("monk") ||
+        v.includes("monastery")
       ) return "Soft";
 
       return "Weird Buckfast";
@@ -959,6 +957,7 @@
 
       if (title.includes("book")) return true;
       if (title.includes("buckfast barbie")) return true;
+
       if (blockedPhrases.some(p => text.includes(p))) return true;
       if (blockedDomains.some(d => link.includes(d))) return true;
       if (blockedStreetCases.some(p => text.includes(p))) return true;
@@ -1080,13 +1079,15 @@
     }
 
     function getEntryTitle(entry) {
-      if (currentLang === "fr") return entry.frTitle || cleanText(entry.title || "");
-      return cleanText(entry.title || "");
+      return currentLang === "fr"
+        ? (entry.frTitle || cleanText(entry.title || ""))
+        : cleanText(entry.title || "");
     }
 
     function getEntrySummary(entry) {
-      if (currentLang === "fr") return entry.frDescription || cleanText(entry.description || "");
-      return cleanText(entry.description || "");
+      return currentLang === "fr"
+        ? (entry.frDescription || cleanText(entry.description || ""))
+        : cleanText(entry.description || "");
     }
 
     async function openStoryExport(entry) {
@@ -1200,9 +1201,8 @@
       let archive = [];
 
       try {
-        const res = await fetch("archive.json", { cache: "no-store" });
+        const res = await fetch("archive.json");
         archive = await res.json();
-        if (!Array.isArray(archive)) archive = [];
       } catch {
         archive = [];
       }
@@ -1211,29 +1211,26 @@
 
       for (const feedUrl of FEED_URLS) {
         try {
-          const res = await fetch(makeRss2JsonUrl(feedUrl), { cache: "no-store" });
+          const res = await fetch(makeRss2JsonUrl(feedUrl));
           const data = await res.json();
           const items = Array.isArray(data.items) ? data.items : [];
           mergedItems = mergedItems.concat(items);
         } catch {
-          // ignore failed feed
+          // ignore failed feed and continue
         }
       }
 
-      for (const item of mergedItems) {
-        const exists = archive.some(a => (a.link || "").trim() === (item.link || "").trim());
-        if (!exists) {
+      mergedItems.forEach(item => {
+        if (!archive.find(a => a.link === item.link)) {
           archive.unshift(item);
         }
-      }
+      });
 
-      archive.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+      archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
       const seenLinks = new Set();
-      const seenTitles = new Set();
 
       allEntries = archive
-        .filter(entry => entry && (entry.title || entry.link))
         .filter(entry => !shouldHideEntry(entry))
         .filter(entry => {
           const rawLink = (entry.link || "").trim().toLowerCase();
@@ -1243,25 +1240,17 @@
             .replace(/[?#].*$/, "")
             .replace(/\/$/, "");
 
-          const normalizedTitle = (entry.title || "")
-            .toLowerCase()
-            .replace(/&amp;/g, "and")
-            .replace(/[^a-z0-9]/g, "")
-            .slice(0, 120);
+          if (!normalizedLink) return false;
+          if (seenLinks.has(normalizedLink)) return false;
 
-          if (normalizedLink && seenLinks.has(normalizedLink)) return false;
-          if (normalizedTitle && seenTitles.has(normalizedTitle)) return false;
-
-          if (normalizedLink) seenLinks.add(normalizedLink);
-          if (normalizedTitle) seenTitles.add(normalizedTitle);
-
+          seenLinks.add(normalizedLink);
           return true;
         })
         .map(entry => ({
           ...entry,
           category: getCategory(entry.title),
-          frTitle: entry.frTitle || "",
-          frDescription: entry.frDescription || ""
+          frTitle: "",
+          frDescription: ""
         }));
 
       applyStaticLanguage();
@@ -1273,9 +1262,11 @@
     function render(items) {
       feed.innerHTML = "";
 
-      const visibleItems = activeCategory === "All"
-        ? items
-        : items.filter(item => item.category === activeCategory);
+      let visibleItems = items;
+
+      if (activeCategory !== "All") {
+        visibleItems = items.filter(item => item.category === activeCategory);
+      }
 
       if (!visibleItems.length) {
         feed.innerHTML = `<div class="empty">${t("noIncidents")}</div>`;

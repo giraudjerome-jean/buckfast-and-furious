@@ -1230,28 +1230,28 @@
 
       const seenLinks = new Set();
 
-      allEntries = archive
-        .filter(entry => !shouldHideEntry(entry))
-        .filter(entry => {
-          const rawLink = (entry.link || "").trim().toLowerCase();
-          const normalizedLink = rawLink
-            .replace(/^https?:\/\//, "")
-            .replace(/^www\./, "")
-            .replace(/[?#].*$/, "")
-            .replace(/\/$/, "");
+allEntries = archive
+  .filter(entry => !shouldHideEntry(entry))
+  .filter(entry => {
+    const rawLink = (entry.link || "").trim().toLowerCase();
+    const normalizedLink = rawLink
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[?#].*$/, "")
+      .replace(/\/$/, "");
 
-          if (!normalizedLink) return false;
-          if (seenLinks.has(normalizedLink)) return false;
+    if (!normalizedLink) return false;
+    if (seenLinks.has(normalizedLink)) return false;
 
-          seenLinks.add(normalizedLink);
-          return true;
-        })
-        .map(entry => ({
-          ...entry,
-          category: getCategory(entry.title),
-          frTitle: "",
-          frDescription: ""
-        }));
+    seenLinks.add(normalizedLink);
+    return true;
+  })
+  .map(entry => ({
+    ...entry,
+    category: getCategory(entry.title),
+    frTitle: "",
+    frDescription: ""
+  }));
 
       applyStaticLanguage();
       buildTopnav();

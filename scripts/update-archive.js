@@ -9,6 +9,12 @@ const PLACE_NAMES = /\bbuckfastleigh\b/i;
 const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
+const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
+const TOPIC_STOP_WORDS = new Set([
+  "about", "after", "again", "before", "being", "could", "court", "from",
+  "into", "latest", "live", "news", "over", "says", "their", "there",
+  "these", "those", "under", "where", "which", "while", "with", "would"
+]);
 
 function clean(value) {
   return String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -16,6 +22,32 @@ function clean(value) {
 
 function mentionsBuckfast(value) {
   return (value.match(/\bbuckfast\b/gi) || []).length;
+}
+
+function topicWords(value) {
+  return [...new Set(
+    clean(value)
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .match(/[a-z0-9]+/g) || []
+  )].filter(word => word.length >= 5 && !TOPIC_STOP_WORDS.has(word));
+}
+
+function hasTopicOverlap(title, description) {
+  const titleWords = topicWords(title);
+  if (!titleWords.length) return false;
+
+  const descriptionWords = new Set(topicWords(description));
+  const matches = titleWords.filter(word => descriptionWords.has(word)).length;
+  return matches >= Math.min(2, titleWords.length);
+}
+
+function hasStrongDescriptionEvidence(title, description) {
+  return !DESCRIPTION_NOISE.test(description) &&
+    mentionsBuckfast(description) >= 2 &&
+    DRINK_CONTEXT.test(description) &&
+    hasTopicOverlap(title, description);
 }
 
 function splitPublisherTitle(value) {
@@ -97,10 +129,10 @@ function isRelevant(item) {
   const text = `${title} ${description}`.trim();
 
   if (!mentionsBuckfast(text)) return false;
-  // Feed descriptions often contain related-story cards and adverts. Requiring
-  // Buckfast in the cleaned headline is the cheapest reliable way to prevent
-  // an unrelated article from borrowing relevance from one of those cards.
-  if (!mentionsBuckfast(title)) return false;
+  // Buckfast in the headline is the strongest signal. Description-only matches
+  // are still allowed when the summary is coherent with the headline and does
+  // not look like a related-story card copied into the RSS feed.
+  if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
   if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text)) return false;
 
   // RSS descriptions can contain unrelated sidebars or adverts mentioning a

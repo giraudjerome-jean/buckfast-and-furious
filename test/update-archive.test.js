@@ -9,6 +9,10 @@ test("keeps a real Buckfast story", () => {
 test("rejects a street name", () => {
   assert.equal(isRelevant({ title: "Gas works on Buckfast Road", description: "Traffic disruption follows." }), false);
 });
+test("rejects unrelated A38 stories and Buckfast as a place", () => {
+  assert.equal(isRelevant({ title: "A38 to shut after man seriously hurt in crash", description: "Devon Live traffic update." }), false);
+  assert.equal(isRelevant({ title: "A38 closure near Buckfast after serious collision", description: "Travel disruption continues." }), false);
+});
 test("rejects Buckfastleigh and shopping spam", () => {
   assert.equal(isRelevant({ title: "Buckfastleigh community news" }), false);
   assert.equal(isRelevant({ title: "Personalised Buckfast bottle label", description: "Pack of 40pcs, free shipping" }), false);

@@ -912,6 +912,10 @@
       const desc = (entry.description || "").toLowerCase();
       const link = (entry.link || "").toLowerCase();
       const text = `${title} ${desc} ${link}`;
+      const articleText = `${title} ${desc}`;
+      const buckfastMentions = (articleText.match(/\bbuckfast\b/g) || []).length;
+      const drinkContext =
+        /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(articleText);
 
       const blockedPhrases = [
         "stobaza",
@@ -961,12 +965,25 @@
       if (blockedPhrases.some(p => text.includes(p))) return true;
       if (blockedDomains.some(d => link.includes(d))) return true;
       if (blockedStreetCases.some(p => text.includes(p))) return true;
+      if (!buckfastMentions) return true;
+      if (/\bbuckfastleigh\b/.test(articleText)) return true;
+      if (
+        /\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/.test(articleText) ||
+        /\b(near|at|in|around|through)\s+buckfast\b/.test(articleText)
+      ) {
+        if (!drinkContext) return true;
+      }
 
       const looksLikeProductSpam =
         /\b\d+\s?(pcs|pc|pack|set)\b/.test(text) ||
         /\b(custom|personalised|personalized|gift|sticker|label|foil|burner|liner)\b/.test(text);
 
       if (looksLikeProductSpam) return true;
+
+      const titleMentionsBuckfast = /\bbuckfast\b/.test(title);
+      if (!titleMentionsBuckfast && !(buckfastMentions >= 2 && drinkContext)) {
+        return true;
+      }
 
       return false;
     }

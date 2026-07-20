@@ -4,6 +4,7 @@
 const fs = require("node:fs");
 
 const LOCATION_ONLY = /\bbuckfast\s+(?:road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/i;
+const NEAR_PLACE = /\b(?:near|at|in|around|through)\s+buckfast\b/i;
 const PLACE_NAMES = /\bbuckfastleigh\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
@@ -23,7 +24,7 @@ function isRelevant(item) {
 
   if (!mentionsBuckfast(text)) return false;
   if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text)) return false;
-  if (LOCATION_ONLY.test(text) && !DRINK_CONTEXT.test(text)) return false;
+  if ((LOCATION_ONLY.test(text) || NEAR_PLACE.test(text)) && !DRINK_CONTEXT.test(text)) return false;
 
   // A Buckfast headline is normally enough; results without it need stronger proof.
   return mentionsBuckfast(title) > 0 ||

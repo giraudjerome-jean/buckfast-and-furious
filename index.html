@@ -913,14 +913,24 @@
     }
 
     function shouldHideEntry(entry) {
-      const title = (entry.title || "").toLowerCase();
-      const desc = (entry.description || "").toLowerCase();
+      // Google Alerts may wrap the matched word in <b> tags. Clean the feed
+      // fields before running phrase and location rules so "near Buckfast"
+      // cannot be disguised as "near <b>Buckfast</b>".
+      const title = cleanText(entry.title || "").toLowerCase();
+      const desc = cleanText(entry.description || "").toLowerCase();
       const link = (entry.link || "").toLowerCase();
       const text = `${title} ${desc} ${link}`;
       const articleText = `${title} ${desc}`;
       const buckfastMentions = (articleText.match(/\bbuckfast\b/g) || []).length;
       const drinkContext =
         /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(articleText);
+      const titleDrinkContext =
+        /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(title);
+      const titleUsesBuckfastAsPlace =
+        /\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/.test(title) ||
+        /\b(near|at|in|around|through)\s+buckfast\b/.test(title);
+      const titleLooksLikeTraffic =
+        /\b(a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/.test(title);
 
       const blockedPhrases = [
         "stobaza",
@@ -972,6 +982,7 @@
       if (blockedStreetCases.some(p => text.includes(p))) return true;
       if (!buckfastMentions) return true;
       if (/\bbuckfastleigh\b/.test(articleText)) return true;
+      if (titleUsesBuckfastAsPlace && titleLooksLikeTraffic && !titleDrinkContext) return true;
       if (
         /\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/.test(articleText) ||
         /\b(near|at|in|around|through)\s+buckfast\b/.test(articleText)
@@ -986,9 +997,7 @@
       if (looksLikeProductSpam) return true;
 
       const titleMentionsBuckfast = /\bbuckfast\b/.test(title);
-      if (!titleMentionsBuckfast && !(buckfastMentions >= 2 && drinkContext)) {
-        return true;
-      }
+      if (!titleMentionsBuckfast) return true;
 
       return false;
     }

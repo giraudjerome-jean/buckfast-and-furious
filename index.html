@@ -372,6 +372,19 @@
       padding:9px 10px 8px;
     }
 
+    .export-toolbar button:disabled{
+      opacity:.45;
+      cursor:progress;
+    }
+
+    .share-status{
+      width:100%;
+      min-height:1.2em;
+      font-size:11px;
+      line-height:1.2;
+      color:var(--soft);
+    }
+
     .ig-share-btn{
       display:inline-flex;
       align-items:center;
@@ -622,7 +635,7 @@
     <div class="export-panel">
       <div class="export-toolbar">
         <div class="export-toolbar-left">
-          <button type="button" id="btn-share" class="ig-share-btn">
+          <button type="button" id="btn-share" class="ig-share-btn" disabled>
             <span class="ig-share-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
@@ -632,11 +645,12 @@
             </span>
             <span id="share-label">Share on Instagram</span>
           </button>
-          <button type="button" id="btn-download">Download PNG</button>
+          <button type="button" id="btn-download" disabled>Download PNG</button>
         </div>
         <div class="export-toolbar-left">
           <button type="button" id="btn-close">Close</button>
         </div>
+        <div class="share-status" id="share-status" role="status" aria-live="polite"></div>
       </div>
 
       <div class="export-stage">
@@ -679,6 +693,13 @@
         aboutText: "Buckfast and Furious collects and indexes daily news items involving Buckfast. Each entry includes a short summary, a short excerpt and a direct link to the original article.",
         share: "Share on Instagram",
         download: "Download PNG",
+        sharePreparing: "Preparing the PNG…",
+        shareReady: "Ready — tap Share on Instagram.",
+        shareFallback: "The PNG has been downloaded. Open Instagram and add it to your Story.",
+        shareFailed: "Sharing was blocked, so the PNG was downloaded instead.",
+        shareCancelled: "Sharing cancelled.",
+        downloadReady: "PNG downloaded.",
+        prepareFailed: "The PNG could not be prepared. Please try again.",
         close: "Close",
         sourceFeed: "Source feed",
         readSource: "Read source",
@@ -707,6 +728,13 @@
         aboutText: "Buckfast and Furious collecte et indexe chaque jour des articles liés à Buckfast. Chaque entrée comprend un court résumé, un court extrait et un lien direct vers l’article d’origine.",
         share: "Partager sur Instagram",
         download: "Télécharger le PNG",
+        sharePreparing: "Préparation du PNG…",
+        shareReady: "Prêt — appuie sur Partager sur Instagram.",
+        shareFallback: "Le PNG a été téléchargé. Ouvre Instagram puis ajoute-le à ta Story.",
+        shareFailed: "Le partage a été bloqué ; le PNG a été téléchargé à la place.",
+        shareCancelled: "Partage annulé.",
+        downloadReady: "PNG téléchargé.",
+        prepareFailed: "Impossible de préparer le PNG. Réessaie.",
         close: "Fermer",
         sourceFeed: "Flux source",
         readSource: "Lire la source",
@@ -760,10 +788,13 @@
     const btnShare = document.getElementById("btn-share");
     const btnDownload = document.getElementById("btn-download");
     const btnClose = document.getElementById("btn-close");
+    const shareStatus = document.getElementById("share-status");
 
     let allEntries = [];
     let activeCategory = "All";
     let currentLang = localStorage.getItem("buckfast_lang") || "en";
+    let preparedStoryAsset = null;
+    let storyPreparationId = 0;
 
     function t(key) {
       return UI[currentLang][key];
@@ -871,6 +902,10 @@
           await document.fonts.ready;
         } catch {}
       }
+    }
+
+    function nextFrame() {
+      return new Promise(resolve => requestAnimationFrame(resolve));
     }
 
     function formatStoryDate(dateString) {
@@ -1234,14 +1269,17 @@
       storySite.style.fontSize = "";
 
       exportWrap.classList.add("active");
+      preparedStoryAsset = null;
+      btnShare.disabled = true;
+      btnDownload.disabled = true;
+      shareStatus.textContent = t("sharePreparing");
 
       await waitForFonts();
+      await nextFrame();
+      await nextFrame();
+      fitStoryText(storyCard);
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          fitStoryText(storyCard);
-        });
-      });
+      prepareStoryAsset();
     }
 
     async function buildStoryBlob() {
@@ -1264,8 +1302,8 @@
       cloneSite.style.fontSize = "";
       fitStoryText(clone);
 
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await nextFrame();
+      await nextFrame();
 
       const canvas = await html2canvas(clone, {
         width: 1080,
@@ -1283,36 +1321,87 @@
       });
     }
 
-    btnDownload.addEventListener("click", async () => {
-      const { canvas } = await buildStoryBlob();
-      const link = document.createElement("a");
-      link.download = "buckfast-story.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    });
+    async function prepareStoryAsset() {
+      const preparationId = ++storyPreparationId;
 
-    btnShare.addEventListener("click", async () => {
       try {
-        const { blob, canvas } = await buildStoryBlob();
+        const asset = await buildStoryBlob();
+        if (preparationId !== storyPreparationId) return;
+        if (!asset.blob) throw new Error("PNG blob was empty");
 
-        if (!blob) return;
-
-        const file = new File([blob], "buckfast-story.png", { type: "image/png" });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "Buckfast Story"
-          });
-        } else {
-          const link = document.createElement("a");
-          link.download = "buckfast-story.png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        }
+        preparedStoryAsset = asset;
+        btnShare.disabled = false;
+        btnDownload.disabled = false;
+        shareStatus.textContent = t("shareReady");
       } catch (err) {
+        if (preparationId !== storyPreparationId) return;
+        preparedStoryAsset = null;
+        btnShare.disabled = true;
+        btnDownload.disabled = true;
+        shareStatus.textContent = t("prepareFailed");
         console.error(err);
       }
+    }
+
+    function downloadStoryAsset(asset) {
+      if (!asset?.blob) return;
+
+      const objectUrl = URL.createObjectURL(asset.blob);
+      const link = document.createElement("a");
+      link.download = "buckfast-story.png";
+      link.href = objectUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+    }
+
+    btnDownload.addEventListener("click", () => {
+      if (!preparedStoryAsset) return;
+      downloadStoryAsset(preparedStoryAsset);
+      shareStatus.textContent = t("downloadReady");
+    });
+
+    btnShare.addEventListener("click", () => {
+      if (!preparedStoryAsset?.blob) return;
+
+      const file = new File(
+        [preparedStoryAsset.blob],
+        "buckfast-story.png",
+        { type: "image/png" }
+      );
+
+      let canShareFile = typeof navigator.share === "function";
+
+      try {
+        if (typeof navigator.canShare === "function") {
+          canShareFile = navigator.canShare({ files: [file] });
+        }
+      } catch {
+        canShareFile = false;
+      }
+
+      if (!canShareFile) {
+        downloadStoryAsset(preparedStoryAsset);
+        shareStatus.textContent = t("shareFallback");
+        return;
+      }
+
+      // The PNG is prepared before this click, so navigator.share is called
+      // synchronously while iOS still considers the user gesture active.
+      navigator.share({
+        files: [file],
+        title: "Buckfast Story"
+      }).catch(err => {
+        if (err?.name === "AbortError") {
+          shareStatus.textContent = t("shareCancelled");
+          return;
+        }
+
+        console.error(err);
+        downloadStoryAsset(preparedStoryAsset);
+        shareStatus.textContent = t("shareFailed");
+      });
     });
 
     btnClose.addEventListener("click", () => {

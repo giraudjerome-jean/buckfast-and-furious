@@ -454,17 +454,17 @@
       overflow:hidden;
       display:flex;
       align-items:center;
-      padding:70px 0 86px;
+      padding:42px 0 56px;
     }
 
     .story-title{
       width:100%;
       margin:0;
-      font-weight:700;
-      line-height:.88;
-      letter-spacing:-0.06em;
-      word-break:break-word;
-      overflow-wrap:anywhere;
+      font-weight:900;
+      line-height:.84;
+      letter-spacing:-0.07em;
+      word-break:normal;
+      overflow-wrap:normal;
       white-space:normal;
       hyphens:none;
       max-width:100%;
@@ -793,16 +793,31 @@
     }
 
     function fitTextToBox(el, box, maxSize, minSize) {
-      let size = maxSize;
-      el.style.fontSize = size + "px";
+      let low = minSize;
+      let high = maxSize;
+      let best = minSize;
 
-      while (
-        size > minSize &&
-        (el.scrollHeight > box.clientHeight || el.scrollWidth > box.clientWidth)
-      ) {
-        size -= 2;
-        el.style.fontSize = size + "px";
+      // Binary search finds the largest possible type size instead of merely
+      // shrinking from a conservative default. This makes every title behave
+      // like a typographic poster while still guaranteeing no clipping.
+      for (let step = 0; step < 12; step += 1) {
+        const size = (low + high) / 2;
+        el.style.fontSize = `${size}px`;
+
+        const fits = el.scrollHeight <= box.clientHeight &&
+          el.scrollWidth <= box.clientWidth;
+
+        if (fits) {
+          best = size;
+          low = size;
+        } else {
+          high = size;
+        }
       }
+
+      const fittedSize = Math.floor(best * 10) / 10;
+      el.style.fontSize = `${fittedSize}px`;
+      el.dataset.fitSize = String(fittedSize);
     }
 
     function fitStoryText(cardElement) {
@@ -811,8 +826,8 @@
       const titleWrap = cardElement.querySelector(".story-title-wrap");
       const siteWrap = cardElement.querySelector(".story-site-wrap");
 
-      fitTextToBox(titleEl, titleWrap, 96, 24);
-      fitTextToBox(siteEl, siteWrap, 34, 16);
+      fitTextToBox(titleEl, titleWrap, 320, 32);
+      fitTextToBox(siteEl, siteWrap, 42, 16);
     }
 
     async function waitForFonts() {
@@ -1114,9 +1129,22 @@
         cut = Math.max(cut, title.lastIndexOf(separator));
       });
 
-      return cut > 0
-        ? { headline: title.slice(0, cut).trim(), publisher: title.slice(cut + 3).trim() }
-        : { headline: title, publisher: "" };
+      if (cut <= 0) return { headline: title, publisher: "" };
+
+      const before = title.slice(0, cut).trim();
+      const after = title.slice(cut + 3).trim();
+      const beforeWords = before.split(/\s+/).length;
+      const afterWords = after.split(/\s+/).length;
+
+      if (/\bbuckfast\b/i.test(after) && before.length <= 40 && beforeWords <= 5) {
+        return { headline: after, publisher: before };
+      }
+
+      if (!/\bbuckfast\b/i.test(after) && after.length <= 70 && afterWords <= 8) {
+        return { headline: before, publisher: after };
+      }
+
+      return { headline: title, publisher: "" };
     }
 
     function headlineKey(value) {

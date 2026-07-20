@@ -21,9 +21,13 @@ test("rejects Buckfastleigh and shopping spam", () => {
   assert.equal(isRelevant({ title: "Buckfastleigh community news" }), false);
   assert.equal(isRelevant({ title: "Personalised Buckfast bottle label", description: "Pack of 40pcs, free shipping" }), false);
 });
-test("rejects articles that mention Buckfast only in a polluted description", () => {
+test("accepts only coherent description-only matches", () => {
   assert.equal(isRelevant({ title: "Licensing debate", description: "Buckfast Tonic Wine and Buckfast sales were discussed." }), false);
   assert.equal(isRelevant({ title: "Licensing debate", description: "One Buckfast mention appeared." }), false);
+  assert.equal(isRelevant({
+    title: "Council licensing debate prompts public health concern",
+    description: "The council licensing debate examined Buckfast Tonic Wine sales and Buckfast-related alcohol harm."
+  }), true);
   assert.equal(isRelevant({
     title: "Domestic abuser subjects partner to 'terrifying attack' in Falkirk",
     description: "Naked man was holding a bottle of Buckfast · Naked man was holding a bottle of Buckfast."

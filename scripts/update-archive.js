@@ -17,6 +17,63 @@ function mentionsBuckfast(value) {
   return (value.match(/\bbuckfast\b/gi) || []).length;
 }
 
+function splitPublisherTitle(value) {
+  const title = clean(value);
+  const separators = [" - ", " – ", " — "];
+  let cut = -1;
+
+  for (const separator of separators) {
+    cut = Math.max(cut, title.lastIndexOf(separator));
+  }
+
+  return cut > 0
+    ? { headline: title.slice(0, cut).trim(), publisher: title.slice(cut + 3).trim() }
+    : { headline: title, publisher: "" };
+}
+
+function headlineKey(value) {
+  return splitPublisherTitle(value).headline
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function sourcePriority(item) {
+  const publisher = splitPublisherTitle(item && item.title).publisher;
+  const link = String(item && item.link || "");
+  return /\b(?:reddit|facebook|instagram|twitter|x\.com)\b/i.test(`${publisher} ${link}`) ? 0 : 1;
+}
+
+function deduplicate(items) {
+  const output = [];
+  const seenLinks = new Set();
+  const headlineIndexes = new Map();
+
+  for (const item of items || []) {
+    if (!item || !item.link || seenLinks.has(item.link)) continue;
+
+    const key = headlineKey(item.title);
+    const duplicateIndex = key ? headlineIndexes.get(key) : undefined;
+
+    if (duplicateIndex !== undefined) {
+      if (sourcePriority(item) > sourcePriority(output[duplicateIndex])) {
+        output[duplicateIndex] = item;
+      }
+      seenLinks.add(item.link);
+      continue;
+    }
+
+    seenLinks.add(item.link);
+    if (key) headlineIndexes.set(key, output.length);
+    output.push(item);
+  }
+
+  return output;
+}
+
 function isRelevant(item) {
   const title = clean(item.title);
   const description = clean(item.description);
@@ -32,15 +89,8 @@ function isRelevant(item) {
 }
 
 function merge(archive, items) {
-  const seen = new Set(archive.map(item => item && item.link).filter(Boolean));
-  const additions = [];
-
-  for (const item of items || []) {
-    if (!item || !item.link || seen.has(item.link) || !isRelevant(item)) continue;
-    additions.push(item);
-    seen.add(item.link);
-  }
-  return [...additions, ...archive];
+  const additions = (items || []).filter(item => item && item.link && isRelevant(item));
+  return deduplicate([...additions, ...archive]);
 }
 
 function run(feedPath = "feed.json", archivePath = "archive.json") {
@@ -55,4 +105,4 @@ function run(feedPath = "feed.json", archivePath = "archive.json") {
 
 if (require.main === module) run(process.argv[2], process.argv[3]);
 
-module.exports = { isRelevant, merge };
+module.exports = { deduplicate, headlineKey, isRelevant, merge, splitPublisherTitle };

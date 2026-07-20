@@ -26,9 +26,25 @@ function splitPublisherTitle(value) {
     cut = Math.max(cut, title.lastIndexOf(separator));
   }
 
-  return cut > 0
-    ? { headline: title.slice(0, cut).trim(), publisher: title.slice(cut + 3).trim() }
-    : { headline: title, publisher: "" };
+  if (cut <= 0) return { headline: title, publisher: "" };
+
+  const before = title.slice(0, cut).trim();
+  const after = title.slice(cut + 3).trim();
+  const beforeWords = before.split(/\s+/).length;
+  const afterWords = after.split(/\s+/).length;
+
+  // Some feeds prefix the publisher ("Falkirk - Headline") while most
+  // append it ("Headline - Falkirk Herald"). Buckfast in the long side is
+  // a strong signal for which side is the actual headline.
+  if (/\bbuckfast\b/i.test(after) && before.length <= 40 && beforeWords <= 5) {
+    return { headline: after, publisher: before };
+  }
+
+  if (!/\bbuckfast\b/i.test(after) && after.length <= 70 && afterWords <= 8) {
+    return { headline: before, publisher: after };
+  }
+
+  return { headline: title, publisher: "" };
 }
 
 function headlineKey(value) {

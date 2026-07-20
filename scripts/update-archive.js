@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const LOCATION_ONLY = /\bbuckfast\s+(?:road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/i;
 const NEAR_PLACE = /\b(?:near|at|in|around|through)\s+buckfast\b/i;
 const PLACE_NAMES = /\bbuckfastleigh\b/i;
+const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
 
@@ -96,17 +97,28 @@ function isRelevant(item) {
   const text = `${title} ${description}`.trim();
 
   if (!mentionsBuckfast(text)) return false;
+  // Feed descriptions often contain related-story cards and adverts. Requiring
+  // Buckfast in the cleaned headline is the cheapest reliable way to prevent
+  // an unrelated article from borrowing relevance from one of those cards.
+  if (!mentionsBuckfast(title)) return false;
   if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text)) return false;
+
+  // RSS descriptions can contain unrelated sidebars or adverts mentioning a
+  // bottle. A traffic headline that uses Buckfast as a location must therefore
+  // prove drink relevance in the headline itself, not somewhere in the feed.
+  const titleUsesBuckfastAsPlace = LOCATION_ONLY.test(title) || NEAR_PLACE.test(title);
+  if (titleUsesBuckfastAsPlace && TRAFFIC_CONTEXT.test(title) && !DRINK_CONTEXT.test(title)) {
+    return false;
+  }
+
   if ((LOCATION_ONLY.test(text) || NEAR_PLACE.test(text)) && !DRINK_CONTEXT.test(text)) return false;
 
-  // A Buckfast headline is normally enough; results without it need stronger proof.
-  return mentionsBuckfast(title) > 0 ||
-    (mentionsBuckfast(text) >= 2 && DRINK_CONTEXT.test(text));
+  return true;
 }
 
 function merge(archive, items) {
   const additions = (items || []).filter(item => item && item.link && isRelevant(item));
-  return deduplicate([...additions, ...archive]);
+  return deduplicate([...additions, ...(archive || [])]);
 }
 
 function run(feedPath = "feed.json", archivePath = "archive.json") {

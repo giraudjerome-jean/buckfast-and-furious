@@ -25,3 +25,16 @@ test("keeps archive objects unchanged and deduplicated", () => {
   const item = { title: "Buckfast Tonic Wine news", link: "https://example.test/a" };
   assert.deepEqual(merge([item], [item]), [item]);
 });
+
+test("deduplicates the same story published through different sources", () => {
+  const reddit = {
+    title: "Naked Bo'ness man was holding a bottle of Buckfast before police arrived - Reddit",
+    link: "https://example.test/reddit"
+  };
+  const original = {
+    title: "Naked Bo’ness man was holding a bottle of Buckfast before police arrived - Falkirk Herald",
+    link: "https://example.test/falkirk"
+  };
+
+  assert.deepEqual(merge([reddit, original], []), [original]);
+});

@@ -460,7 +460,7 @@
     .story-title{
       width:100%;
       margin:0;
-      font-weight:900;
+      font-weight:700;
       line-height:.84;
       letter-spacing:-0.07em;
       word-break:normal;
@@ -786,6 +786,41 @@
         .trim();
     }
 
+    const TOPIC_STOP_WORDS = new Set([
+      "about", "after", "again", "before", "being", "could", "court", "from",
+      "into", "latest", "live", "news", "over", "says", "their", "there",
+      "these", "those", "under", "where", "which", "while", "with", "would"
+    ]);
+
+    function topicWords(value) {
+      return [...new Set(
+        cleanText(value)
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .match(/[a-z0-9]+/g) || []
+      )].filter(word => word.length >= 5 && !TOPIC_STOP_WORDS.has(word));
+    }
+
+    function hasTopicOverlap(title, description) {
+      const titleWords = topicWords(title);
+      if (!titleWords.length) return false;
+
+      const descriptionWords = new Set(topicWords(description));
+      const matches = titleWords.filter(word => descriptionWords.has(word)).length;
+      return matches >= Math.min(2, titleWords.length);
+    }
+
+    function hasStrongDescriptionEvidence(title, description) {
+      const looksLikeRelatedStories =
+        /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i.test(description);
+
+      return !looksLikeRelatedStories &&
+        (description.match(/\bbuckfast\b/gi) || []).length >= 2 &&
+        /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i.test(description) &&
+        hasTopicOverlap(title, description);
+    }
+
     function truncate(text, max) {
       if (!text) return "";
       if (text.length <= max) return text;
@@ -997,7 +1032,7 @@
       if (looksLikeProductSpam) return true;
 
       const titleMentionsBuckfast = /\bbuckfast\b/.test(title);
-      if (!titleMentionsBuckfast) return true;
+      if (!titleMentionsBuckfast && !hasStrongDescriptionEvidence(title, desc)) return true;
 
       return false;
     }

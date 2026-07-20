@@ -1105,14 +1105,44 @@
       }
     }
 
+    function splitPublisherTitle(value) {
+      const title = cleanText(value || "");
+      const separators = [" - ", " – ", " — "];
+      let cut = -1;
+
+      separators.forEach(separator => {
+        cut = Math.max(cut, title.lastIndexOf(separator));
+      });
+
+      return cut > 0
+        ? { headline: title.slice(0, cut).trim(), publisher: title.slice(cut + 3).trim() }
+        : { headline: title, publisher: "" };
+    }
+
+    function headlineKey(value) {
+      return splitPublisherTitle(value).headline
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[’']/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function sourcePriority(entry) {
+      const publisher = splitPublisherTitle(entry && entry.title).publisher;
+      const link = String(entry && entry.link || "");
+      return /\b(?:reddit|facebook|instagram|twitter|x\.com)\b/i.test(`${publisher} ${link}`) ? 0 : 1;
+    }
+
     function getStoryParts(entry) {
       const fullTitle = getEntryTitle(entry) || "Untitled";
-      const match = fullTitle.match(/\s+-\s+([^-]+)$/);
+      const parts = splitPublisherTitle(fullTitle);
       const hostname = getSourceHost(entry.link);
 
       return {
-        headline: match ? fullTitle.slice(0, match.index).trim() : fullTitle,
-        source: match ? match[1].trim() : hostname
+        headline: parts.headline,
+        source: parts.publisher || hostname
       };
     }
 
@@ -1257,10 +1287,24 @@
       archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
       const seenLinks = new Set();
+      const bestEntryByHeadline = new Map();
+
+      archive.forEach(entry => {
+        const key = headlineKey(entry && entry.title);
+        if (!key) return;
+
+        const current = bestEntryByHeadline.get(key);
+        if (!current || sourcePriority(entry) > sourcePriority(current)) {
+          bestEntryByHeadline.set(key, entry);
+        }
+      });
 
 allEntries = archive
   .filter(entry => !shouldHideEntry(entry))
   .filter(entry => {
+    const titleKey = headlineKey(entry.title);
+    if (titleKey && bestEntryByHeadline.get(titleKey) !== entry) return false;
+
     const rawLink = (entry.link || "").trim().toLowerCase();
     const normalizedLink = rawLink
       .replace(/^https?:\/\//, "")

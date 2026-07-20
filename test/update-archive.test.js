@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isRelevant, merge } = require("../scripts/update-archive.js");
+const { isRelevant, merge, splitPublisherTitle } = require("../scripts/update-archive.js");
 
 test("keeps a real Buckfast story", () => {
   assert.equal(isRelevant({ title: "Buckfast tonic wine licensing debate", description: "Alcohol policy in Glasgow." }), true);
@@ -37,4 +37,16 @@ test("deduplicates the same story published through different sources", () => {
   };
 
   assert.deepEqual(merge([reddit, original], []), [original]);
+});
+
+test("supports publisher names before or after the headline", () => {
+  const headline = "Naked Bo'ness man was holding a bottle of Buckfast before police arrived";
+  assert.deepEqual(splitPublisherTitle(`Falkirk - ${headline}`), {
+    headline,
+    publisher: "Falkirk"
+  });
+  assert.deepEqual(splitPublisherTitle(`${headline} - Falkirk Herald`), {
+    headline,
+    publisher: "Falkirk Herald"
+  });
 });

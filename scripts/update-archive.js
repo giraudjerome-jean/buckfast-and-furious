@@ -8,6 +8,7 @@ const NEAR_PLACE = /\b(?:near|at|in|around|through)\s+buckfast\b/i;
 const PLACE_NAMES = /\bbuckfastleigh\b/i;
 const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
+const BEE_CONTEXT = /\b(?:adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
 const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
 const TOPIC_STOP_WORDS = new Set([
@@ -90,6 +91,20 @@ function headlineKey(value) {
     .trim();
 }
 
+function publicationDay(item) {
+  const date = new Date(item && (item.pubDate || item.date));
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+function isNearDuplicateHeadline(left, right) {
+  const leftWords = new Set(topicWords(splitPublisherTitle(left).headline));
+  const rightWords = new Set(topicWords(splitPublisherTitle(right).headline));
+  if (leftWords.size < 6 || rightWords.size < 6) return false;
+  const shared = [...leftWords].filter(word => rightWords.has(word)).length;
+  return shared / Math.min(leftWords.size, rightWords.size) >= 0.9 &&
+    shared / Math.max(leftWords.size, rightWords.size) >= 0.8;
+}
+
 function sourcePriority(item) {
   const publisher = splitPublisherTitle(item && item.title).publisher;
   const link = String(item && item.link || "");
@@ -105,7 +120,14 @@ function deduplicate(items) {
     if (!item || !item.link || seenLinks.has(item.link)) continue;
 
     const key = headlineKey(item.title);
-    const duplicateIndex = key ? headlineIndexes.get(key) : undefined;
+    let duplicateIndex = key ? headlineIndexes.get(key) : undefined;
+    if (duplicateIndex === undefined) {
+      duplicateIndex = output.findIndex(existing =>
+        publicationDay(existing) && publicationDay(existing) === publicationDay(item) &&
+        isNearDuplicateHeadline(existing.title, item.title)
+      );
+      if (duplicateIndex < 0) duplicateIndex = undefined;
+    }
 
     if (duplicateIndex !== undefined) {
       if (sourcePriority(item) > sourcePriority(output[duplicateIndex])) {
@@ -133,7 +155,7 @@ function isRelevant(item) {
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.
   if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
-  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text)) return false;
+  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title)) return false;
 
   // RSS descriptions can contain unrelated sidebars or adverts mentioning a
   // bottle. A traffic headline that uses Buckfast as a location must therefore
@@ -165,4 +187,4 @@ function run(feedPath = "feed.json", archivePath = "archive.json") {
 
 if (require.main === module) run(process.argv[2], process.argv[3]);
 
-module.exports = { deduplicate, headlineKey, isRelevant, merge, splitPublisherTitle };
+module.exports = { deduplicate, headlineKey, isNearDuplicateHeadline, isRelevant, merge, splitPublisherTitle };

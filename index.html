@@ -991,6 +991,8 @@
       const link = (entry.link || "").toLowerCase();
       const text = `${title} ${desc} ${link}`;
       const articleText = `${title} ${desc}`;
+      const beeContext =
+        /\b(adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/.test(title);
       const buckfastMentions = (articleText.match(/\bbuckfast\b/g) || []).length;
       const drinkContext =
         /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(articleText);
@@ -1001,6 +1003,8 @@
         /\b(near|at|in|around|through)\s+buckfast\b/.test(title);
       const titleLooksLikeTraffic =
         /\b(a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/.test(title);
+
+      if (beeContext) return true;
 
       const blockedPhrases = [
         "stobaza",
@@ -1236,6 +1240,24 @@
         .trim();
     }
 
+    function headlineWords(value) {
+      return new Set(headlineKey(value).split(" ").filter(word => word.length >= 5));
+    }
+
+    function isNearDuplicateHeadline(left, right) {
+      const leftWords = headlineWords(left);
+      const rightWords = headlineWords(right);
+      if (leftWords.size < 6 || rightWords.size < 6) return false;
+      const shared = [...leftWords].filter(word => rightWords.has(word)).length;
+      return shared / Math.min(leftWords.size, rightWords.size) >= 0.9 &&
+        shared / Math.max(leftWords.size, rightWords.size) >= 0.8;
+    }
+
+    function publicationDay(entry) {
+      const date = new Date(entry && (entry.pubDate || entry.date));
+      return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+    }
+
     function sourcePriority(entry) {
       const publisher = splitPublisherTitle(entry && entry.title).publisher;
       const link = String(entry && entry.link || "");
@@ -1419,6 +1441,7 @@
 
       const seenLinks = new Set();
       const bestEntryByHeadline = new Map();
+      const acceptedEntries = [];
 
       archive.forEach(entry => {
         const key = headlineKey(entry && entry.title);
@@ -1436,6 +1459,12 @@
           const titleKey = headlineKey(entry.title);
           if (titleKey && bestEntryByHeadline.get(titleKey) !== entry) return false;
 
+          const nearDuplicate = acceptedEntries.some(existing =>
+            publicationDay(existing) && publicationDay(existing) === publicationDay(entry) &&
+            isNearDuplicateHeadline(existing.title, entry.title)
+          );
+          if (nearDuplicate) return false;
+
           const rawLink = (entry.link || "").trim().toLowerCase();
           const normalizedLink = rawLink
             .replace(/^https?:\/\//, "")
@@ -1447,6 +1476,7 @@
           if (seenLinks.has(normalizedLink)) return false;
 
           seenLinks.add(normalizedLink);
+          acceptedEntries.push(entry);
           return true;
         })
         .map(entry => ({

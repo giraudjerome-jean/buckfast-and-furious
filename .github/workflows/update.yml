@@ -1,33 +1,50 @@
 name: Update archive
+
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: '0 * * * *' # toutes les heures
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Fetch, filter and update archive
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch RSS and update archive
         run: |
-          curl --fail --silent --show-error --retry 3 "https://api.rss2json.com/v1/api.json?rss_url=https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310" > feed.json
-          node <<'EOF'
-          const fs=require('fs');
-          const feed=JSON.parse(fs.readFileSync('feed.json','utf8'));
-          const archive=fs.existsSync('archive.json')?JSON.parse(fs.readFileSync('archive.json','utf8')):[];
-          const text=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-          const count=s=>(s.match(/\bbuckfast\b/gi)||[]).length;
-          const keep=item=>{
-            const title=text(item.title), desc=text(item.description), all=title+' '+desc;
-            if(!count(all)||/\bbuckfastleigh\b/i.test(all)||/\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/i.test(all)||/\b(personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(pcs|pc|pack|set))\b/i.test(all)) return false;
-            return count(title)>0 || (count(all)>=2 && /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|drink|drinking|booze|bottle|buckie|bucky)\b/i.test(all));
-          };
-          const links=new Set(archive.map(x=>x.link));
-          const add=(feed.items||[]).filter(x=>x&&x.link&&!links.has(x.link)&&keep(x));
-          fs.writeFileSync('archive.json',JSON.stringify([...add,...archive],null,2)+'\n');
-          EOF
+          mkdir -p feeds
+          urls=(
+            "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310"
+            "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391"
+            "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935"
+            "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en"
+            "https://news.google.com/rss/search?q=buckfast%20crime&hl=en-GB&gl=GB&ceid=GB:en"
+            "https://news.google.com/rss/search?q=buckfast%20assault%20OR%20buckfast%20attack%20OR%20buckfast%20arrest&hl=en-GB&gl=GB&ceid=GB:en"
+          )
+
+          for i in "${!urls[@]}"; do
+            encoded=$(node -p 'encodeURIComponent(process.argv[1])' "${urls[$i]}")
+            curl --fail --silent --show-error --retry 3 \
+              "https://api.rss2json.com/v1/api.json?rss_url=$encoded" \
+              > "feeds/$i.json" || echo '{"items":[]}' > "feeds/$i.json"
+          done
+
+          node - <<'NODE'
+          const fs = require("fs");
+          const items = fs.readdirSync("feeds")
+            .sort()
+            .flatMap(file => JSON.parse(fs.readFileSync(`feeds/${file}`, "utf8")).items || []);
+          fs.writeFileSync("feed.json", JSON.stringify({ items }, null, 2));
+          NODE
+
+          node scripts/update-archive.js feed.json archive.json
+
       - name: Commit changes
         run: |
           git config user.name "github-actions"

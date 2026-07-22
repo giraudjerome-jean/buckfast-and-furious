@@ -756,6 +756,15 @@
       }
     };
 
+    const FEED_URLS = [
+      "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
+      "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
+      "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
+      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast%20crime&hl=en-GB&gl=GB&ceid=GB:en",
+      "https://news.google.com/rss/search?q=buckfast%20assault%20OR%20buckfast%20attack%20OR%20buckfast%20arrest&hl=en-GB&gl=GB&ceid=GB:en"
+    ];
+
     const CATEGORIES = [
       "All",
       "Violence",
@@ -789,6 +798,10 @@
 
     function t(key) {
       return UI[currentLang][key];
+    }
+
+    function makeRss2JsonUrl(feedUrl) {
+      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
     }
 
     function decodeHtmlEntities(str) {
@@ -1401,16 +1414,7 @@
       }
     });
 
-    async function load() {
-      let archive = [];
-
-      try {
-        const res = await fetch("archive.json");
-        archive = await res.json();
-      } catch {
-        archive = [];
-      }
-
+    function prepareEntries(archive) {
       archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
       const seenLinks = new Set();
@@ -1426,31 +1430,76 @@
         }
       });
 
-allEntries = archive
-  .filter(entry => !shouldHideEntry(entry))
-  .filter(entry => {
-    const titleKey = headlineKey(entry.title);
-    if (titleKey && bestEntryByHeadline.get(titleKey) !== entry) return false;
+      allEntries = archive
+        .filter(entry => !shouldHideEntry(entry))
+        .filter(entry => {
+          const titleKey = headlineKey(entry.title);
+          if (titleKey && bestEntryByHeadline.get(titleKey) !== entry) return false;
 
-    const rawLink = (entry.link || "").trim().toLowerCase();
-    const normalizedLink = rawLink
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
-      .replace(/[?#].*$/, "")
-      .replace(/\/$/, "");
+          const rawLink = (entry.link || "").trim().toLowerCase();
+          const normalizedLink = rawLink
+            .replace(/^https?:\/\//, "")
+            .replace(/^www\./, "")
+            .replace(/[?#].*$/, "")
+            .replace(/\/$/, "");
 
-    if (!normalizedLink) return false;
-    if (seenLinks.has(normalizedLink)) return false;
+          if (!normalizedLink) return false;
+          if (seenLinks.has(normalizedLink)) return false;
 
-    seenLinks.add(normalizedLink);
-    return true;
-  })
-  .map(entry => ({
-    ...entry,
-    category: getCategory(entry.title),
-    frTitle: "",
-    frDescription: ""
-  }));
+          seenLinks.add(normalizedLink);
+          return true;
+        })
+        .map(entry => ({
+          ...entry,
+          category: getCategory(entry.title),
+          frTitle: "",
+          frDescription: ""
+        }));
+    }
+
+    async function refreshFromFeeds(archive) {
+      const results = await Promise.allSettled(
+        FEED_URLS.map(async feedUrl => {
+          const res = await fetch(makeRss2JsonUrl(feedUrl));
+          const data = await res.json();
+          return Array.isArray(data.items) ? data.items : [];
+        })
+      );
+
+      const merged = [...archive];
+      const knownLinks = new Set(merged.map(item => item && item.link).filter(Boolean));
+
+      results.forEach(result => {
+        if (result.status !== "fulfilled") return;
+        result.value.forEach(item => {
+          if (!item || !item.link || knownLinks.has(item.link)) return;
+          knownLinks.add(item.link);
+          merged.push(item);
+        });
+      });
+
+      if (merged.length === archive.length) return;
+
+      prepareEntries(merged);
+      render(allEntries);
+
+      if (currentLang === "fr") {
+        await ensureTranslationsForVisible();
+        render(allEntries);
+      }
+    }
+
+    async function load() {
+      let archive = [];
+
+      try {
+        const res = await fetch("archive.json");
+        archive = await res.json();
+      } catch {
+        archive = [];
+      }
+
+      prepareEntries(archive);
 
       applyStaticLanguage();
       buildTopnav();
@@ -1462,6 +1511,9 @@ allEntries = archive
       if (currentLang === "fr") {
         ensureTranslationsForVisible().then(() => render(allEntries));
       }
+
+      // Keep the first paint fast, then enrich it with all feeds in parallel.
+      refreshFromFeeds(archive);
     }
 
     function render(items) {

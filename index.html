@@ -681,7 +681,7 @@
 
   <div id="export-render-root"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     const UI = {
       en: {
@@ -756,15 +756,6 @@
       }
     };
 
-    const FEED_URLS = [
-      "https://www.google.com/alerts/feeds/02891315752029914665/15910925906449957310",
-      "https://www.google.com/alerts/feeds/02891315752029914665/4370149902045499391",
-      "https://www.google.com/alerts/feeds/02891315752029914665/11146652638055505935",
-      "https://news.google.com/rss/search?q=buckfast&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast%20crime&hl=en-GB&gl=GB&ceid=GB:en",
-      "https://news.google.com/rss/search?q=buckfast%20assault%20OR%20buckfast%20attack%20OR%20buckfast%20arrest&hl=en-GB&gl=GB&ceid=GB:en"
-    ];
-
     const CATEGORIES = [
       "All",
       "Violence",
@@ -798,10 +789,6 @@
 
     function t(key) {
       return UI[currentLang][key];
-    }
-
-    function makeRss2JsonUrl(feedUrl) {
-      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
     }
 
     function decodeHtmlEntities(str) {
@@ -1424,27 +1411,6 @@
         archive = [];
       }
 
-      let mergedItems = [];
-
-      for (const feedUrl of FEED_URLS) {
-  try {
-    const res = await fetch(makeRss2JsonUrl(feedUrl));
-    const data = await res.json();
-    const items = Array.isArray(data.items) ? data.items : [];
-    console.log("FEED:", feedUrl);
-    console.log("ITEMS:", items.length);
-    mergedItems = mergedItems.concat(items);
-  } catch {
-    // ignore failed feed and continue
-  }
-}
-
-      mergedItems.forEach(item => {
-        if (!archive.find(a => a.link === item.link)) {
-          archive.unshift(item);
-        }
-      });
-
       archive.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
       const seenLinks = new Set();
@@ -1488,8 +1454,14 @@ allEntries = archive
 
       applyStaticLanguage();
       buildTopnav();
-      await ensureTranslationsForVisible();
       render(allEntries);
+
+      // The archive is the published source of truth and is refreshed by
+      // GitHub Actions. Render it first; optional French translations can
+      // arrive afterwards without delaying the initial list.
+      if (currentLang === "fr") {
+        ensureTranslationsForVisible().then(() => render(allEntries));
+      }
     }
 
     function render(items) {

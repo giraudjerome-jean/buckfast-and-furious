@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#101217">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NIVA BLYAT — FLAPPY BUILD</title>
+<title>NIVA BLYAT — FLAPPY DOOMER BUILD</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#0d0f13;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;touch-action:none;-webkit-user-select:none;user-select:none}
 #wrap{height:100%;display:grid;place-items:center;background:#0d0f13}
@@ -31,7 +31,7 @@ var pick=function(a){return a[(Math.random()*a.length)|0];};
 var store={get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:(+v||0);}catch(e){return d;}},set:function(k,v){try{localStorage.setItem(k,String(v));}catch(e){}}};
 
 var state='title',last=0,elapsed=0,distance=0,best=store.get('nivaFlappyBest',0),score=0,bestScore=store.get('nivaFlappyScore',0);
-var speed=230,spawnTimer=0,obstacles=[],particles=[],shake=0,flash=0,deathText='',zone=0,zoneFlash=0;
+var speed=215,spawnTimer=0,obstacles=[],particles=[],shake=0,flash=0,deathText='',zone=0,zoneFlash=0;
 var car={y:GROUND-46,vy:0,pitch:0,impact:0,hat:true,shoe:true,spin:0};
 var audio=null,nextBeat=0,beat=0,bpm=154;
 var startedHint=0;
@@ -70,10 +70,10 @@ function updateParticles(dt){
 }
 
 function reset(){
-  state='play';elapsed=0;distance=0;score=0;speed=230;spawnTimer=.9;obstacles=[];particles=[];shake=0;flash=0;deathText='';zone=0;zoneFlash=1.4;startedHint=1.6;
+  state='play';elapsed=0;distance=0;score=0;speed=215;spawnTimer=1.25;obstacles=[];particles=[];shake=0;flash=0;deathText='';zone=0;zoneFlash=1.6;startedHint=2.2;
   car.y=GROUND-46;car.vy=0;car.pitch=0;car.impact=0;car.hat=true;car.shoe=true;car.spin=0;
   if(audio){beat=0;nextBeat=audio.ac.currentTime+.05;}
-  spawnObstacle(760,'pothole');
+  spawnObstacle(860,'pothole');
 }
 
 function obstacleGap(){
@@ -84,7 +84,7 @@ function obstacleGap(){
 function spawnObstacle(x,forced){
   var pool=score<4?['pothole','truck','pipe']:score<10?['pothole','truck','pipe','gate']:['pothole','truck','pipe','gate','double'];
   var type=forced||pick(pool),o={type:type,x:x==null?W+120:x,passed:false,hit:false};
-  if(type==='pothole'){o.w=120;o.y=GROUND-5;o.h=36;}
+  if(type==='pothole'){o.w=score<3?88:118;o.y=GROUND-5;o.h=34;}
   if(type==='truck'){o.w=110;o.y=GROUND-92;o.h=92;}
   if(type==='pipe'){o.w=105;o.y=0;o.h=285+rand(-20,25);}
   if(type==='gate'){var g=obstacleGap();o.w=88;o.gTop=g.top;o.gBottom=g.bottom;}
@@ -96,7 +96,7 @@ function tap(){
   ensureAudio();if(audio&&audio.ac.state==='suspended')audio.ac.resume();
   if(state==='title'||state==='gameover'){reset();haptic(10);return;}
   if(state!=='play')return;
-  car.vy=Math.max(car.vy-330,-620);car.pitch=-.16;car.impact=.16;startedHint=0;
+  car.vy=Math.max(car.vy-350,-640);car.pitch=-.16;car.impact=.16;startedHint=0;
   tone(240,.035,.1,'square');haptic(8);
   burst(CAR_X-76,car.y+30,4,'#d9dde0',.35);
 }
@@ -107,7 +107,7 @@ function collides(o){
   var b=carBox();
   if(o.type==='pothole'){
     var zone={x:o.x-o.w/2,y:GROUND-18,w:o.w,h:50};
-    return intersects(b,zone)&&car.y>GROUND-100;
+    return intersects(b,zone)&&car.y>GROUND-82;
   }
   if(o.type==='truck')return intersects(b,{x:o.x-o.w/2,y:o.y,w:o.w,h:o.h});
   if(o.type==='pipe')return intersects(b,{x:o.x-o.w/2,y:0,w:o.w,h:o.h});
@@ -138,12 +138,12 @@ function update(dt){
   if(state==='gameover'){
     car.vy+=1000*dt;car.y+=car.vy*dt;car.pitch+=car.spin*dt;if(car.y>GROUND-46){car.y=GROUND-46;car.vy*=-.18;car.spin*=.68;}return;
   }
-  elapsed+=dt;distance+=speed*dt/15;speed=Math.min(390,230+elapsed*5.2+score*1.2);
-  car.vy+=1060*dt;car.y+=car.vy*dt;car.pitch+=((clamp(car.vy/620,-.42,.5))-car.pitch)*dt*5.2;
+  elapsed+=dt;distance+=speed*dt/15;speed=Math.min(375,215+elapsed*4.6+score*1.05);
+  car.vy+=1020*dt;car.y+=car.vy*dt;car.pitch+=((clamp(car.vy/620,-.42,.5))-car.pitch)*dt*5.2;
   if(car.y>GROUND-46){car.y=GROUND-46;if(car.vy>160){burst(CAR_X,GROUND-9,7,'#d8dde0',.4);car.impact=.12;}car.vy=0;car.pitch*=.7;}
   if(car.y<78){car.y=78;die({type:'pipe'});}
 
-  spawnTimer-=dt;if(spawnTimer<=0){spawnObstacle();var density=Math.max(.84,1.55-score*.018);spawnTimer=density+rand(.12,.45);}
+  spawnTimer-=dt;if(spawnTimer<=0){spawnObstacle();var density=Math.max(.95,1.7-score*.016);spawnTimer=density+rand(.14,.52);}
   for(var i=0;i<obstacles.length;i++){
     var o=obstacles[i];o.x-=speed*dt;
     if(!o.hit&&collides(o)){o.hit=true;die(o);break;}
@@ -155,30 +155,38 @@ function update(dt){
 }
 
 function background(){
-  var palettes=[['#9eb5c7','#d6dde1','#6d7d87','#87949b'],['#90a6b7','#cbd5da','#62727a','#74828a'],['#8397a4','#c0c9cd','#586268','#70787d'],['#7f99ab','#cbd6dc','#66747a','#7b878d']];
+  var palettes=[['#8a9aaa','#c6cdd1','#566067','#717d84'],['#8292a0','#bcc7cd','#4c565d','#667279'],['#798893','#b5c0c5','#454e54','#5f686e'],['#85929a','#c0c9cd','#535e65','#6e7980']];
   var p=palettes[zone];var g=ctx.createLinearGradient(0,0,0,GROUND);g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);ctx.fillStyle=g;ctx.fillRect(0,0,W,GROUND);
   var off=(distance*3.1)%220;
   ctx.fillStyle=p[2];
   for(var i=-2;i<7;i++){
     var x=i*220-off;
-    if(zone===0){ctx.fillRect(x,170,168,160);for(var r=0;r<4;r++)for(var c=0;c<4;c++)rect(x+18+c*36,194+r*28,16,13,(r+c)%5===0?'#d5c887':'#56636b');}
+    if(zone===0){
+      ctx.fillRect(x,170,168,160);
+      for(var r=0;r<4;r++)for(var c=0;c<4;c++)rect(x+18+c*36,194+r*28,16,13,(r+c)%5===0?'#d5c887':'#4d5960');
+      rect(x+112,190,40,120,'rgba(20,22,24,.12)');
+      text('ПАНЕЛЬКА',x+84,178,10,'#c9d0d3','center');
+    }
     else if(zone===1){ctx.beginPath();ctx.moveTo(x,335);ctx.lineTo(x+58,150);ctx.lineTo(x+116,335);ctx.fill();rect(x+55,300,7,40,p[2]);}
-    else if(zone===2){rect(x,240,180,95,p[2]);rect(x+35,125,22,210,p[2]);rect(x+95,165,19,170,p[2]);ctx.fillStyle='rgba(72,80,84,.18)';ctx.beginPath();ctx.arc(x+45,115,35,0,Math.PI*2);ctx.fill();ctx.fillStyle=p[2];}
-    else{ctx.fillRect(x+20,275,130,60);ctx.beginPath();ctx.moveTo(x+8,275);ctx.lineTo(x+85,220);ctx.lineTo(x+165,275);ctx.fill();}
+    else if(zone===2){rect(x,240,180,95,p[2]);rect(x+35,125,22,210,p[2]);rect(x+95,165,19,170,p[2]);ctx.fillStyle='rgba(72,80,84,.18)';ctx.beginPath();ctx.arc(x+45,115,35,0,Math.PI*2);ctx.fill();ctx.fillStyle=p[2];text('ДЫМ',x+92,250,12,'#cfd5d7','center');}
+    else{ctx.fillRect(x+20,275,130,60);ctx.beginPath();ctx.moveTo(x+8,275);ctx.lineTo(x+85,220);ctx.lineTo(x+165,275);ctx.fill();rect(x+72,240,7,34,'#4a545a');}
   }
+  for(var pole=-40;pole<W+80;pole+=190){rect(pole,150,3,184,'rgba(58,63,67,.35)');ctx.strokeStyle='rgba(58,63,67,.25)';ctx.beginPath();ctx.moveTo(pole,185);ctx.lineTo(pole+98,168);ctx.stroke();ctx.beginPath();ctx.moveTo(pole,215);ctx.lineTo(pole+92,201);ctx.stroke();}
   rect(0,332,W,106,'#edf2f4');ctx.fillStyle='#cbd3d8';for(var q=-20;q<W+20;q+=44){ctx.beginPath();ctx.arc(q,397,28,Math.PI,0);ctx.fill();}
-  rect(0,GROUND,W,H-GROUND,'#4b5054');rect(0,GROUND,W,8,'#303437');var stripe=(distance*10)%128;for(var sx=-128;sx<W+128;sx+=128)rect(sx-stripe,493,74,5,'#7a7f82');rect(0,520,W,20,'#e8edf0');
+  rect(46,286,120,62,'#61686e');rect(54,294,104,8,'#a93d36');text('ДОРОГ НЕТ',106,312,12,'#fff','center');text('но вы держитесь',106,326,9,'#dfe5e8','center');
+  rect(0,GROUND,W,H-GROUND,'#4b5054');rect(0,GROUND,W,8,'#303437');var stripe=(distance*10)%128;for(var sx=-128;sx<W+128;sx+=128)rect(sx-stripe,493,74,5,'#7a7f82');rect(0,520,W,20,'#e8edf0');ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(0,0,W,GROUND);
 }
 
 function drawCar(){
   ctx.save();ctx.translate(CAR_X,car.y);ctx.rotate(car.pitch);var impact=Math.sin(car.impact*30)*car.impact*8;
   ctx.translate(0,impact);
   for(var j=0;j<2;j++){var wx=j?74:-62;ctx.fillStyle='#17191a';ctx.beginPath();ctx.arc(wx,38,26,0,Math.PI*2);ctx.fill();ctx.fillStyle='#777b7d';ctx.beginPath();ctx.arc(wx,38,11,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle='#d9d2c5';ctx.strokeStyle='#17191a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-110,22);ctx.lineTo(-100,-20);ctx.lineTo(-64,-54);ctx.lineTo(45,-54);ctx.lineTo(105,-18);ctx.lineTo(124,17);ctx.lineTo(119,31);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#d8d0c2';ctx.strokeStyle='#17191a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-110,22);ctx.lineTo(-100,-20);ctx.lineTo(-64,-54);ctx.lineTo(45,-54);ctx.lineTo(105,-18);ctx.lineTo(124,17);ctx.lineTo(119,31);ctx.closePath();ctx.fill();ctx.stroke();
+  rect(-96,-10,18,9,'#8f4c34');rect(-12,7,22,8,'#6e4c2c');
   rect(-57,-46,47,29,'#44535c');rect(0,-46,42,29,'#44535c');ctx.strokeStyle='#17191a';ctx.strokeRect(-57,-46,47,29);ctx.strokeRect(0,-46,42,29);
   ctx.fillStyle='#8b5b3b';for(var i=0;i<12;i++)ctx.fillRect(-94+(i*29%185),-1+(i*13%28),3+(i%3),2);text('NIVA',-10,-3,15,'#343738','center');
   ctx.save();ctx.translate(-8,-86);if(car.hat){rect(-13,-58,26,9,'#111');rect(-9,-67,18,10,'#111');rect(-2,-64,4,4,'#d53a31');}
-  ctx.fillStyle='#d4ad87';ctx.beginPath();ctx.arc(0,-39,10,0,Math.PI*2);ctx.fill();rect(-20,-29,40,39,'#101112');rect(-25,6,17,33,'#101112');rect(8,6,17,33,'#101112');
+  ctx.fillStyle='#d4ad87';ctx.beginPath();ctx.arc(0,-39,10,0,Math.PI*2);ctx.fill();rect(8,-39,10,2,'#fff');rect(18,-40,10,1,'rgba(255,255,255,.5)');rect(-20,-29,40,39,'#101112');rect(-25,6,17,33,'#101112');rect(8,6,17,33,'#101112');
   rect(-17,-26,3,30,'#eee');rect(-9,-26,3,30,'#eee');rect(9,-26,3,30,'#eee');rect(17,-26,3,30,'#eee');
   ctx.restore();ctx.restore();
 }
@@ -205,10 +213,10 @@ function drawParticles(){for(var i=0;i<particles.length;i++){var p=particles[i];
 function hud(){
   rect(18,18,275,80,'rgba(14,16,18,.88)');text('DISTANCE '+Math.floor(distance)+' m',32,28,24,'#fff');text('BEST '+best+' m',32,58,15,'#cfd4d7');
   text('BLYAT '+score,W/2,18,42,score?'#ef3d32':'#fff','center');text('BEST '+bestScore,W/2,66,14,'#d3d8db','center');
-  if(startedHint>0&&state==='play'){ctx.globalAlpha=clamp(startedHint,0,1);text('TAP = BOUNCE',W/2,116,22,'#ffd34a','center');ctx.globalAlpha=1;}
-  if(zoneFlash>0&&state==='play'){ctx.globalAlpha=clamp(zoneFlash,0,1);text(['MIKRODISTRICT','TAIGA','INDUSTRIAL BLYAT','VILLAGE OF DESTINY'][zone],W-24,26,15,'#fff','right');ctx.globalAlpha=1;}
+  if(startedHint>0&&state==='play'){ctx.globalAlpha=clamp(startedHint,0,1);text('TAP = PETIT VOL | LE 1er TROU EST PLUS FACILE',W/2,116,18,'#ffd34a','center');ctx.globalAlpha=1;}
+  if(zoneFlash>0&&state==='play'){ctx.globalAlpha=clamp(zoneFlash,0,1);text(['PANELKA DOOMER','TAIGA DOOMER','INDUSTRIAL BLYAT','VILLAGE OF DESTINY'][zone],W-24,26,15,'#fff','right');ctx.globalAlpha=1;}
 }
-function title(){ctx.fillStyle='rgba(0,0,0,.48)';ctx.fillRect(0,0,W,H);text('NIVA BLYAT',W/2,110,72,'#ef3d32','center');text('FLAPPY BUILD',W/2,198,26,'#ffd34a','center');text('TAP = LA NIVA VOLE',W/2,330,26,'#fff','center');text('Évite le béton. Évite l’URAL. Survis.',W/2,376,16,'#fff','center');}
+function title(){ctx.fillStyle='rgba(0,0,0,.52)';ctx.fillRect(0,0,W,H);text('NIVA BLYAT',W/2,102,72,'#ef3d32','center');text('DOOMER FLAPPY BUILD',W/2,188,24,'#ffd34a','center');text('PANELKA • GOPNIK • NEIGE SALE',W/2,220,14,'#d7dde0','center');text('TAP = LA NIVA VOLE',W/2,330,26,'#fff','center');text('Le 1er trou est plus easy. Évite le béton. Évite l’URAL.',W/2,376,16,'#fff','center');}
 function gameover(){ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(0,0,W,H);text('BLYAT.',W/2,118,72,'#ef3d32','center');text(score+' PASSAGES',W/2,214,34,'#fff','center');text(deathText,W/2,276,17,'#ffd34a','center');text('TAP = ENCORE',W/2,372,28,'#fff','center');}
 
 function render(){

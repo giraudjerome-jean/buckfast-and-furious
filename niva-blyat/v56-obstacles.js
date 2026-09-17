@@ -11,7 +11,7 @@
   rocketRider.src='./obstacle-rocket-rider-v67.png?v=67sheet';
   cyclist.src='./obstacle-cyclist-v67.png?v=67sheet';
   armoredBear.src='./obstacle-armored-bear-v67.png?v=67sheet';
-  samovarBot.src='./obstacle-samovar-bot-v67.png?v=67sheet';
+  samovarBot.src='./obstacle-samovar-bot-v69.png?v=69clean-cut';
   policeNiva.src='./obstacle-police-niva-v67.png?v=67sheet';
 
   function ready(image){ return image.complete && image.naturalWidth; }

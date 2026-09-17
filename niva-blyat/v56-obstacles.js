@@ -1,12 +1,13 @@
 /* V5.6 — illustrated roadside hazards.  Visuals only: v4-game.js owns every hitbox. */
 (function(){
   var legacyDrawObstacle=window.drawObstacle;
-  var snowBear=new Image(), woodStop=new Image(), pedestrian=new Image(), tireStack=new Image(), samovar=new Image();
+  var snowBear=new Image(), woodStop=new Image(), pedestrian=new Image(), tireStack=new Image(), samovar=new Image(), washer=new Image();
   snowBear.src='./obstacle-snow-bear-v56.png?v=56hazards';
   woodStop.src='./obstacle-wood-stop-v57.png?v=57scale';
   pedestrian.src='./obstacle-pedestrian-v57.png?v=57scale';
   tireStack.src='./obstacle-tires-v58.png?v=58variety';
   samovar.src='./obstacle-samovar-v59.png?v=59absurd';
+  washer.src='./obstacle-washer-v60.png?v=60absurd';
 
   function ready(image){return image.complete&&image.naturalWidth>0;}
   function ice(o){
@@ -45,6 +46,17 @@
     rr(x,y,54,50,9,'#3f6780','#1d3543');rect(x,y+10,54,5,'#d2e2e7');rect(x,y+34,54,5,'#d2e2e7');
     ctx.fillStyle='#f1b743';ctx.beginPath();ctx.arc(o.x,y+24,7,0,7);ctx.fill();ctx.fillStyle='#25333b';ctx.fillRect(o.x-2,y+19,4,10);ctx.restore();
   }
+  function tvSled(o){
+    var x=o.x-31,y=GROUND-52;ctx.save();
+    rr(x,y,62,43,4,'#5a493d','#171e25');rr(x+7,y+7,48,28,3,'#1b3446','#96c6cf');
+    rect(x+12,y+39,6,8,'#483020');rect(x+45,y+39,6,8,'#483020');
+    ctx.strokeStyle='#b88a46';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-2,y+49);ctx.lineTo(x+64,y+49);ctx.stroke();ctx.restore();
+  }
+  function satellite(o){
+    var x=o.x,y=68;ctx.save();ctx.strokeStyle='#b8ced5';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y,37,17,-.3,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#324d5b';ctx.beginPath();ctx.ellipse(x,y,31,13,-.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#dfecef';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+14,y-10);ctx.lineTo(x+35,y-30);ctx.stroke();
+    ctx.strokeStyle='#18242b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y+17);ctx.lineTo(x-12,o.h-13);ctx.stroke();ctx.restore();
+  }
   function checkpoint(o){
     var xs=[o.x-o.w/2];if(o.type==='double')xs.push(o.x-o.w/2+o.offset);
     for(var k=0;k<xs.length;k++){
@@ -73,8 +85,8 @@
   window.drawObstacle=function(o){
     if(o.type==='pothole'){ice(o);return;}
     if(o.type==='truck'){
-      if(o.skin==null)o.skin=Math.floor(Math.random()*3);
-      if(o.skin===0)vodkaCrates(o);else if(o.skin===1)snowDumpster(o);else if(ready(samovar)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(samovar,o.x-47,GROUND-72,94,72);ctx.restore();}else vodkaCrates(o);return;
+      if(o.skin==null)o.skin=Math.floor(Math.random()*4);
+      if(o.skin===0)vodkaCrates(o);else if(o.skin===1)snowDumpster(o);else if(o.skin===2&&ready(samovar)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(samovar,o.x-47,GROUND-72,94,72);ctx.restore();}else if(ready(washer)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(washer,o.x-42,GROUND-70,84,70);ctx.restore();}else vodkaCrates(o);return;
     }
     if(o.type==='babushka'){
       if(o.skin==null)o.skin=Math.floor(Math.random()*3);
@@ -83,12 +95,12 @@
       if(ready(sprite)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(sprite,o.x-(isPedestrian?34:42),GROUND-(isPedestrian?66:66),isPedestrian?68:84,isPedestrian?66:66);ctx.restore();return;}
     }
     if(o.type==='barrier'){
-      if(o.skin==null)o.skin=Math.floor(Math.random()*3);
-      if(o.skin===2){barrel(o);return;}
+      if(o.skin==null)o.skin=Math.floor(Math.random()*4);
+      if(o.skin===2){barrel(o);return;}if(o.skin===3){tvSled(o);return;}
       var barrierSprite=o.skin===0?woodStop:tireStack;
       if(ready(barrierSprite)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(barrierSprite,o.x-42,GROUND-64,84,64);ctx.restore();return;}
     }
-    if(o.type==='pipe'){overheadCable(o);return;}
+    if(o.type==='pipe'){if(o.skin==null)o.skin=Math.floor(Math.random()*2);if(o.skin===1)satellite(o);overheadCable(o);return;}
     if((o.type==='gate'||o.type==='double')){checkpoint(o);return;}
     legacyDrawObstacle(o);
   };

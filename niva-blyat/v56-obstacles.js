@@ -1,12 +1,18 @@
 /* V6.1 — finished illustrated obstacle roster. Physics and hitboxes stay in v4-game.js. */
 (function(){
   var bear=new Image(), washer=new Image(), vending=new Image(), fishingHut=new Image(), piano=new Image(), skateBabushka=new Image();
+  var rocketRider=new Image(), cyclist=new Image(), armoredBear=new Image(), samovarBot=new Image(), policeNiva=new Image();
   bear.src='./obstacle-bear-profile-v63.png?v=63perspective';
   washer.src='./obstacle-washer-front-v63.png?v=63perspective';
   vending.src='./obstacle-vending-front-v63.png?v=63perspective';
   fishingHut.src='./obstacle-hut-front-v63.png?v=63perspective';
   piano.src='./obstacle-piano-profile-v63.png?v=63perspective';
   skateBabushka.src='./obstacle-skate-babushka-v65.png?v=65moving';
+  rocketRider.src='./obstacle-rocket-rider-v67.png?v=67sheet';
+  cyclist.src='./obstacle-cyclist-v67.png?v=67sheet';
+  armoredBear.src='./obstacle-armored-bear-v67.png?v=67sheet';
+  samovarBot.src='./obstacle-samovar-bot-v67.png?v=67sheet';
+  policeNiva.src='./obstacle-police-niva-v67.png?v=67sheet';
 
   function ready(image){ return image.complete && image.naturalWidth; }
   function choose(o,count){
@@ -39,7 +45,8 @@
     ctx.restore();
   }
   function moving(o){
-    var vehicles=[bear,piano,skateBabushka], sizes=[[128,96],[160,112],[154,118]], i=choose(o,vehicles.length);
+    var vehicles=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
+    var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,vehicles.length);
     sprite(vehicles[i],o,sizes[i][0],sizes[i][1]);
   }
   function checkpoint(o){

@@ -1,3 +1,30 @@
+// V5 photo-Niva renderer: replaces the old geometric car after v4-art.js has loaded.
+function drawCar(){
+  var altitude=clamp((CFG.groundY-car.y)/180,0,1);
+  var compression=car.impact>0?Math.sin(car.impact*28)*car.impact*25:0;
+  ctx.save();
+  ctx.translate(CAR_X,car.y);
+  ctx.rotate(car.pitch);
+  ctx.save();ctx.rotate(-car.pitch);ctx.globalAlpha=.28*(1-altitude*.58);ctx.fillStyle='#0f1214';ctx.beginPath();ctx.ellipse(0,55+altitude*6,112-altitude*27,14-altitude*4,0,0,Math.PI*2);ctx.fill();ctx.restore();ctx.globalAlpha=1;
+  ctx.translate(0,compression*.20);
+  if(typeof nivaPhoto!=='undefined' && nivaPhoto && nivaPhoto.complete && nivaPhoto.naturalWidth){
+    ctx.drawImage(nivaPhoto,-125,-78,250,111);
+  }else{
+    rr(-108,-28,216,56,8,'#a95f49','#141719');
+    text('NIVA',0,-7,14,'#fff','center');
+  }
+  var lean=clamp(car.vy/720,-.22,.26),squat=clamp(Math.abs(car.vy)/650,0,.35)+Math.abs(compression)*.02;
+  ctx.save();ctx.translate(-2,-92+squat*8);ctx.rotate(lean*.42);
+  rr(-36,21,34,9,4,'#0e1011');rr(8,21,34,9,4,'#0e1011');
+  poly([[-28,4],[-8,4],[-2,23],[-31,23]],'#111314');poly([[10,4],[30,4],[35,23],[5,23]],'#111314');
+  rr(-18,-18,40,37,6,'#0f1112');rect(-14,-16,3,30,'#e6e6e6');rect(-6,-16,3,30,'#e6e6e6');rect(10,-16,3,30,'#e6e6e6');rect(18,-16,3,30,'#e6e6e6');
+  rect(-2,-27,9,9,'#c9946c');ctx.fillStyle='#d2a078';ctx.beginPath();ctx.arc(3,-36,11,0,Math.PI*2);ctx.fill();
+  rr(-11,-50,28,9,2,'#111314');rr(-7,-59,20,11,2,'#111314');rect(0,-56,5,5,'#c33e36');
+  var armLift=clamp(-car.vy/520,0,.75);ctx.save();ctx.translate(-19,-8);ctx.rotate(-.2-armLift*.65);rr(-19,-3,25,8,4,'#101213');rect(-20,-1,7,5,'#d2a078');ctx.restore();ctx.save();ctx.translate(22,-8);ctx.rotate(.2+armLift*.65);rr(-5,-3,25,8,4,'#101213');rect(14,-1,7,5,'#d2a078');ctx.restore();
+  line(13,-32,28,-29,'#e9e3d6',2);ctx.fillStyle='#d96a44';ctx.beginPath();ctx.arc(29,-29,2,0,Math.PI*2);ctx.fill();ctx.save();ctx.globalAlpha=.26;ctx.strokeStyle='#d9dfe1';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(31,-31);ctx.bezierCurveTo(37,-37,29,-42,37,-48);ctx.stroke();ctx.restore();
+  ctx.restore();
+  ctx.restore();
+}
 function drawParticles(){for(var i=0;i<particles.length;i++){var p=particles[i];ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.c;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}ctx.globalAlpha=1;}
 function drawSpeech(){if(speechT<=0)return;var a=clamp(speechT*2,0,1),bx=CAR_X+62,by=car.y-145;ctx.globalAlpha=a;rect(bx-8,by-8,142,38,'rgba(14,16,18,.92)');ctx.fillStyle='rgba(14,16,18,.92)';ctx.beginPath();ctx.moveTo(bx+8,by+30);ctx.lineTo(bx-3,by+49);ctx.lineTo(bx+27,by+31);ctx.fill();text(speechText,bx+63,by,17,'#fff','center');ctx.globalAlpha=1;}
 function hud(){rect(18,18,250,70,'rgba(12,14,16,.82)');text(Math.floor(distance)+' m',31,27,24,'#fff');text('BEST '+best+' m',31,57,14,'#bdc6ca');text('BLYAT '+score,W/2,18,38,score?'#e8483e':'#fff','center');rect(W-82,18,64,42,'rgba(12,14,16,.82)');text(muted?'MUTE':'SOUND',W-50,29,11,muted?'#8d969a':'#efd05f','center');if(startedHint>0&&state==='play'){ctx.globalAlpha=clamp(startedHint,0,1);text('TAP POUR REMONTER — LE PREMIER TROU EST LE TUTO',W/2,104,16,'#efd05f','center');ctx.globalAlpha=1;}if(zoneFlash>0&&state==='play'){ctx.globalAlpha=clamp(zoneFlash,0,1);text(['PANELKA','TAIGA','INDUSTRIAL BLYAT','VILLAGE OF DESTINY'][zone],W-26,72,15,'#fff','right');ctx.globalAlpha=1;}}

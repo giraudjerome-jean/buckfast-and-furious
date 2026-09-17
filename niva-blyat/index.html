@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#11151a">
+<meta name="theme-color" content="#0d1014">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NIVA BLYAT — DOOMER RUN</title>
+<meta name="mobile-web-app-capable" content="yes">
+<title>NIVA BLYAT — DOOMER RUN V4 AA</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#0d1014;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;touch-action:none;-webkit-user-select:none;user-select:none}
 #wrap{height:100%;display:grid;place-items:center;background:#0d1014}
-canvas{display:block;width:100vw;height:100vh;object-fit:contain;background:#8b98a3;touch-action:none}
+canvas{display:block;width:100vw;height:100vh;object-fit:contain;background:#7f8e9a;touch-action:none}
 #rotate{display:none;position:fixed;inset:0;z-index:10;background:#0d1014;color:#fff;place-items:center;text-align:center;padding:30px;font-weight:900;letter-spacing:.04em}
 #rotate b{display:block;color:#e8483e;font-size:28px;margin-bottom:12px}
 @media (orientation:portrait) and (max-width:900px){#rotate{display:grid}}
@@ -19,9 +20,10 @@ canvas{display:block;width:100vw;height:100vh;object-fit:contain;background:#8b9
 <body>
 <div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
 <div id="rotate"><div><b>NIVA BLYAT</b>Tourne ton téléphone en paysage<br><small>puis tape l’écran.</small></div></div>
-<script src="core.js"></script>
-<script src="game.js"></script>
-<script src="art.js"></script>
-<script src="main.js"></script>
+<script src="v4-core.js?v=4aa"></script>
+<script src="v4-audio.js?v=4aa"></script>
+<script src="v4-game.js?v=4aa"></script>
+<script src="v4-art.js?v=4aa"></script>
+<script src="v4-main.js?v=4aa"></script>
 </body>
 </html>

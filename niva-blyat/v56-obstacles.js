@@ -47,6 +47,8 @@
   function moving(o){
     var vehicles=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
     var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,vehicles.length);
+    if(i===3)o.hit=true;
+    if(i===2||i===4||i===7){ctx.save();ctx.globalAlpha=.8;for(var s=0;s<7;s++){var drift=((elapsed*90+s*13+o.x)%42);ctx.fillStyle=s%2?'#d9e8f0':'#93b4ca';ctx.fillRect(Math.round(o.x+sizes[i][0]*.23+drift),Math.round(GROUND-4-s%3*3),2+s%2,2);}ctx.restore();}
     sprite(vehicles[i],o,sizes[i][0],sizes[i][1],vehicles[i]===rocketRider?132:0);
   }
   function checkpoint(o){

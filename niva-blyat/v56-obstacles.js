@@ -1,25 +1,27 @@
 /* V5.6 — illustrated roadside hazards.  Visuals only: v4-game.js owns every hitbox. */
 (function(){
   var legacyDrawObstacle=window.drawObstacle;
-  var vodkaTruck=new Image(), snowBear=new Image(), snowTank=new Image();
-  vodkaTruck.src='./obstacle-vodka-truck-v56.png?v=56hazards';
+  var snowBear=new Image(), woodStop=new Image(), pedestrian=new Image();
   snowBear.src='./obstacle-snow-bear-v56.png?v=56hazards';
-  snowTank.src='./obstacle-snow-tank-v56.png?v=56hazards';
+  woodStop.src='./obstacle-wood-stop-v57.png?v=57scale';
+  pedestrian.src='./obstacle-pedestrian-v57.png?v=57scale';
 
   function ready(image){return image.complete&&image.naturalWidth>0;}
   function ice(o){
-    var half=o.w*.52, y=GROUND+7;
+    var half=o.w*.52, y=GROUND+8;
     ctx.save();
-    var sheen=ctx.createRadialGradient(o.x-12,y-4,2,o.x,y,half+14);
-    sheen.addColorStop(0,'rgba(210,231,244,.45)');
-    sheen.addColorStop(.4,'rgba(67,104,126,.45)');
-    sheen.addColorStop(1,'rgba(12,20,29,.85)');
-    ctx.fillStyle=sheen;ctx.beginPath();ctx.ellipse(o.x,y,half+8,13,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(219,239,250,.55)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(o.x-half*.72,y-2);ctx.lineTo(o.x-half*.18,y-7);ctx.lineTo(o.x+half*.08,y-2);ctx.lineTo(o.x+half*.65,y-6);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(o.x-3,y-8);ctx.lineTo(o.x+7,y+3);ctx.lineTo(o.x+20,y+5);ctx.stroke();
+    ctx.fillStyle='#101923';ctx.beginPath();ctx.moveTo(o.x-half-8,y);ctx.lineTo(o.x-half*.56,y-9);ctx.lineTo(o.x+half*.16,y-11);ctx.lineTo(o.x+half+9,y-3);ctx.lineTo(o.x+half*.52,y+10);ctx.lineTo(o.x-half*.38,y+11);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(152,185,199,.52)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(o.x-half*.7,y-1);ctx.lineTo(o.x-half*.23,y-6);ctx.lineTo(o.x+2,y+1);ctx.lineTo(o.x+half*.43,y-6);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(o.x+1,y+1);ctx.lineTo(o.x-10,y+9);ctx.moveTo(o.x+1,y+1);ctx.lineTo(o.x+18,y+9);ctx.stroke();
     ctx.restore();
     if(o.first){rr(o.x-31,GROUND-44,62,23,5,'rgba(15,23,31,.9)','#94b8ca');text('JUMP',o.x,GROUND-39,12,'#f3d866','center');}
+  }
+  function vodkaCrates(o){
+    var x=o.x-43,y=GROUND-51;ctx.save();
+    rr(x,y,86,51,3,'#744633','#281d19');
+    for(var i=0;i<3;i++){rect(x+7+i*25,y+8,18,34,'#a06a42','#311e18');rect(x+10+i*25,y+13,12,23,'#d9c9a9','#44342c');rect(x+14+i*25,y+16,4,16,'#7d3028');}
+    rect(x+3,y+44,80,5,'#e0e8eb');ctx.restore();
   }
   function checkpoint(o){
     var xs=[o.x-o.w/2];if(o.type==='double')xs.push(o.x-o.w/2+o.offset);
@@ -36,14 +38,15 @@
   }
   window.drawObstacle=function(o){
     if(o.type==='pothole'){ice(o);return;}
-    if(o.type==='truck'&&ready(vodkaTruck)){
-      ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(vodkaTruck,o.x-70,GROUND-102,140,102);ctx.restore();return;
+    if(o.type==='truck'){
+      vodkaCrates(o);return;
     }
-    if(o.type==='babushka'&&ready(snowBear)){
-      ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(snowBear,o.x-46,GROUND-76,92,76);ctx.restore();return;
+    if(o.type==='babushka'){
+      var isPedestrian=(Math.floor(Math.abs(o.x)/100)%2)===0, sprite=isPedestrian?pedestrian:snowBear;
+      if(ready(sprite)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(sprite,o.x-(isPedestrian?34:42),GROUND-(isPedestrian?66:66),isPedestrian?68:84,isPedestrian?66:66);ctx.restore();return;}
     }
-    if(o.type==='barrier'&&ready(snowTank)){
-      ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(snowTank,o.x-62,GROUND-68,124,68);ctx.restore();return;
+    if(o.type==='barrier'&&ready(woodStop)){
+      ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(woodStop,o.x-42,GROUND-64,84,64);ctx.restore();return;
     }
     if((o.type==='gate'||o.type==='double')){checkpoint(o);return;}
     legacyDrawObstacle(o);

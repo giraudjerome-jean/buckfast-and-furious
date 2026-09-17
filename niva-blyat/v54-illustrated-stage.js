@@ -42,8 +42,9 @@
     for(var puff=0;puff<6;puff++){
       var drift=Math.sin(smokeTime+puff*1.7)*2.8;
       var rise=(elapsed*15+puff*5)%8;
-      var sx=Math.round(45+puff*3.3+drift);
-      var sy=Math.round(-137-puff*7-rise);
+      /* Start exactly at the cigarette: no detached smoke cloud. */
+      var sx=Math.round(30+puff*2.2+drift);
+      var sy=Math.round(-116-puff*6-rise);
       ctx.globalAlpha=.78-puff*.09;
       ctx.fillStyle=puff%2?'#b9c5ce':'#edf2f3';
       ctx.fillRect(sx,sy,puff<2?3:4,puff<2?3:4);

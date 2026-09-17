@@ -19,7 +19,7 @@
     if(o.skin==null) o.skin=Math.floor(Math.random()*count);
     return o.skin%count;
   }
-  function sprite(image,o,w,h){
+  function sprite(image,o,w,h,airborne){
     if(!ready(image)) return false;
     ctx.imageSmoothingEnabled=false;
     if(image===bear){
@@ -30,7 +30,7 @@
       ctx.fillStyle='#d7e7f0'; ctx.fillRect(sx+sw-7,sy-1,7,2); ctx.fillRect(sx+sw-12,sy+5,8,2);
       ctx.restore();
     }
-    ctx.drawImage(image,Math.round(o.x-w/2),Math.round(GROUND-h),w,h);
+    ctx.drawImage(image,Math.round(o.x-w/2),Math.round(GROUND-h-(airborne||0)),w,h);
     return true;
   }
   function blackIce(o){
@@ -47,7 +47,7 @@
   function moving(o){
     var vehicles=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
     var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,vehicles.length);
-    sprite(vehicles[i],o,sizes[i][0],sizes[i][1]);
+    sprite(vehicles[i],o,sizes[i][0],sizes[i][1],vehicles[i]===rocketRider?132:0);
   }
   function checkpoint(o){
     var x=o.x-o.w/2, w=o.w, top=GROUND-o.h, base=GROUND;

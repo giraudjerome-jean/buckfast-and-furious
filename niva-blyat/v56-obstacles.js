@@ -1,7 +1,7 @@
 /* V6.1 — finished illustrated obstacle roster. Physics and hitboxes stay in v4-game.js. */
 (function(){
   var bear=new Image(), stop=new Image(), pedestrian=new Image(), tires=new Image();
-  var samovar=new Image(), washer=new Image(), vending=new Image(), satellite=new Image();
+  var samovar=new Image(), washer=new Image(), vending=new Image(), satellite=new Image(), fishingHut=new Image(), piano=new Image();
   bear.src='./obstacle-snow-bear-v56.png?v=56hazards';
   stop.src='./obstacle-wood-stop-v57.png?v=57scale';
   pedestrian.src='./obstacle-pedestrian-v57.png?v=57scale';
@@ -10,6 +10,8 @@
   washer.src='./obstacle-washer-v60.png?v=60absurd';
   vending.src='./obstacle-vending-v61.png?v=61polished';
   satellite.src='./obstacle-satellite-v61.png?v=61polished';
+  fishingHut.src='./obstacle-fishing-hut-v62.png?v=62absurd';
+  piano.src='./obstacle-piano-v62.png?v=62absurd';
 
   function ready(image){ return image.complete && image.naturalWidth; }
   function choose(o,count){
@@ -57,11 +59,11 @@
   window.drawObstacle=function(o){
     if(o.type==='pothole'){ blackIce(o); return; }
     if(o.type==='truck'){
-      var big=[samovar,washer,vending], bigSize=[[112,90],[110,90],[102,94]], bi=choose(o,big.length);
+      var big=[samovar,washer,vending,fishingHut], bigSize=[[112,90],[110,90],[102,94],[116,96]], bi=choose(o,big.length);
       sprite(big[bi],o,bigSize[bi][0],bigSize[bi][1]); return;
     }
     if(o.type==='barrier'){
-      var compact=[stop,tires,satellite], compactSize=[[90,68],[88,66],[102,78]], ci=choose(o,compact.length);
+      var compact=[stop,tires,satellite,piano], compactSize=[[90,68],[88,66],[102,78],[106,78]], ci=choose(o,compact.length);
       sprite(compact[ci],o,compactSize[ci][0],compactSize[ci][1]); return;
     }
     if(o.type==='babushka'){

@@ -39,7 +39,7 @@
     ctx.restore();
   }
   function moving(o){
-    var vehicles=[bear,piano,skateBabushka], sizes=[[128,96],[112,78],[112,86]], i=choose(o,vehicles.length);
+    var vehicles=[bear,piano,skateBabushka], sizes=[[128,96],[160,112],[154,118]], i=choose(o,vehicles.length);
     sprite(vehicles[i],o,sizes[i][0],sizes[i][1]);
   }
   function checkpoint(o){

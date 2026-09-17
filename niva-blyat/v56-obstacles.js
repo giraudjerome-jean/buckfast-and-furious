@@ -49,11 +49,23 @@
     ctx.fillStyle='#bad7ec'; ctx.globalAlpha=.6; ctx.fillRect(x+w*.19,y+4,4,1); ctx.fillRect(x+w*.74,y+9,5,1);
     ctx.restore();
   }
+  function snowWake(x,weight,seed){
+    var tick=Math.floor(elapsed*24), count=weight===1?4:weight===2?6:9;
+    ctx.save();ctx.imageSmoothingEnabled=false;
+    for(var n=0;n<count;n++){
+      var drift=5+((n*9+tick*3+seed)%34), rise=((n*5+tick)%11);
+      ctx.globalAlpha=.22+(n%3)*.13;ctx.fillStyle=n%2?'#e8f5fb':'#9ebdce';
+      ctx.fillRect(Math.round(x+drift),Math.round(GROUND-2-rise*.42),n%4===0?2:1,n%4===0?2:1);
+    }
+    ctx.restore();
+  }
   function moving(o){
     var vehicles=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
     var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,vehicles.length);
     if(i===3&&o.flightY==null)o.flightY=Math.random()<.5?190:310;
-    if(i===2||i===4||i===7){ctx.save();ctx.globalAlpha=.82;var wheelX=i===2?[o.x+18]:i===4?[o.x-42,o.x+44]:[o.x+62];for(var q=0;q<wheelX.length;q++)for(var s=0;s<5;s++){var drift=((elapsed*72+s*11+o.x+q*7)%28);ctx.fillStyle=s%2?'#eaf4f8':'#9dc2d6';ctx.fillRect(Math.round(wheelX[q]+drift),Math.round(GROUND-4-s%3*3),2,2);}ctx.restore();}
+    if(i===2){snowWake(o.x-39,1,7);snowWake(o.x+36,1,19);}
+    if(i===4){snowWake(o.x-43,2,13);snowWake(o.x+45,2,31);}
+    if(i===7){snowWake(o.x-62,3,17);snowWake(o.x+63,3,37);}
     var lift=i===3?GROUND-sizes[i][1]-o.flightY:0;
     sprite(vehicles[i],o,sizes[i][0],sizes[i][1],lift);
   }

@@ -15,6 +15,14 @@
   function sprite(image,o,w,h){
     if(!ready(image)) return false;
     ctx.imageSmoothingEnabled=false;
+    if(image===bear){
+      var sx=Math.round(o.x-w/2-10), sy=GROUND-7, sw=w+28;
+      ctx.save();
+      ctx.fillStyle='#34251d'; ctx.fillRect(sx,sy,sw,4); ctx.fillRect(sx+4,sy+5,sw-8,3);
+      ctx.fillStyle='#9b7247'; ctx.fillRect(sx+3,sy,sw-8,2); ctx.fillRect(sx+8,sy+5,sw-16,1);
+      ctx.fillStyle='#d7e7f0'; ctx.fillRect(sx+sw-7,sy-1,7,2); ctx.fillRect(sx+sw-12,sy+5,8,2);
+      ctx.restore();
+    }
     ctx.drawImage(image,Math.round(o.x-w/2),Math.round(GROUND-h),w,h);
     return true;
   }

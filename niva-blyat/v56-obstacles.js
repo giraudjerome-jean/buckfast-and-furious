@@ -1,17 +1,11 @@
 /* V6.1 — finished illustrated obstacle roster. Physics and hitboxes stay in v4-game.js. */
 (function(){
-  var bear=new Image(), stop=new Image(), pedestrian=new Image(), tires=new Image();
-  var samovar=new Image(), washer=new Image(), vending=new Image(), satellite=new Image(), fishingHut=new Image(), piano=new Image();
-  bear.src='./obstacle-snow-bear-v56.png?v=56hazards';
-  stop.src='./obstacle-wood-stop-v57.png?v=57scale';
-  pedestrian.src='./obstacle-pedestrian-v57.png?v=57scale';
-  tires.src='./obstacle-tires-v58.png?v=58variety';
-  samovar.src='./obstacle-samovar-v59.png?v=59absurd';
-  washer.src='./obstacle-washer-v60.png?v=60absurd';
-  vending.src='./obstacle-vending-v61.png?v=61polished';
-  satellite.src='./obstacle-satellite-v61.png?v=61polished';
-  fishingHut.src='./obstacle-fishing-hut-v62.png?v=62absurd';
-  piano.src='./obstacle-piano-v62.png?v=62absurd';
+  var bear=new Image(), washer=new Image(), vending=new Image(), fishingHut=new Image(), piano=new Image();
+  bear.src='./obstacle-bear-profile-v63.png?v=63perspective';
+  washer.src='./obstacle-washer-front-v63.png?v=63perspective';
+  vending.src='./obstacle-vending-front-v63.png?v=63perspective';
+  fishingHut.src='./obstacle-hut-front-v63.png?v=63perspective';
+  piano.src='./obstacle-piano-profile-v63.png?v=63perspective';
 
   function ready(image){ return image.complete && image.naturalWidth; }
   function choose(o,count){
@@ -59,15 +53,15 @@
   window.drawObstacle=function(o){
     if(o.type==='pothole'){ blackIce(o); return; }
     if(o.type==='truck'){
-      var big=[samovar,washer,vending,fishingHut], bigSize=[[112,90],[110,90],[102,94],[116,96]], bi=choose(o,big.length);
+      var big=[washer,vending,fishingHut], bigSize=[[104,92],[104,96],[118,104]], bi=choose(o,big.length);
       sprite(big[bi],o,bigSize[bi][0],bigSize[bi][1]); return;
     }
     if(o.type==='barrier'){
-      var compact=[stop,tires,satellite,piano], compactSize=[[90,68],[88,66],[102,78],[106,78]], ci=choose(o,compact.length);
+      var compact=[piano,bear], compactSize=[[112,78],[128,96]], ci=choose(o,compact.length);
       sprite(compact[ci],o,compactSize[ci][0],compactSize[ci][1]); return;
     }
     if(o.type==='babushka'){
-      var people=[pedestrian,bear], peopleSize=[[64,66],[86,66]], pi=choose(o,people.length);
+      var people=[bear,washer], peopleSize=[[128,96],[92,88]], pi=choose(o,people.length);
       sprite(people[pi],o,peopleSize[pi][0],peopleSize[pi][1]); return;
     }
     if(o.type==='pipe'){ catenary(o); return; }

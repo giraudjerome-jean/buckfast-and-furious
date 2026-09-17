@@ -1,4 +1,19 @@
-// V5 photo-Niva renderer: replaces the old geometric car after v4-art.js has loaded.
+// V5 photo-Niva renderer with animated wheels.
+function drawNivaWheelV5(x,y,r,rot){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.fillStyle='#111416';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2c3134';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#bfc3c4';ctx.beginPath();ctx.arc(0,0,r*.57,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#70777a';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.fillStyle='#545b5e';
+  for(var i=0;i<8;i++){ctx.save();ctx.rotate(i*Math.PI/4);ctx.beginPath();ctx.arc(0,-r*.38,r*.07,0,Math.PI*2);ctx.fill();ctx.restore();}
+  ctx.strokeStyle='#646b6e';ctx.lineWidth=1.4;
+  for(var s=0;s<6;s++){ctx.rotate(Math.PI/3);ctx.beginPath();ctx.moveTo(0,-r*.13);ctx.lineTo(0,-r*.48);ctx.stroke();}
+  ctx.fillStyle='#353a3d';ctx.beginPath();ctx.arc(0,0,r*.18,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
 function drawCar(){
   var altitude=clamp((CFG.groundY-car.y)/180,0,1);
   var compression=car.impact>0?Math.sin(car.impact*28)*car.impact*25:0;
@@ -9,6 +24,9 @@ function drawCar(){
   ctx.translate(0,compression*.20);
   if(typeof nivaPhoto!=='undefined' && nivaPhoto && nivaPhoto.complete && nivaPhoto.naturalWidth){
     ctx.drawImage(nivaPhoto,-125,-78,250,111);
+    // Cover the baked-in wheel faces and redraw them with rotation.
+    drawNivaWheelV5(-71,12,18.5,car.wheelRot);
+    drawNivaWheelV5(82,12,18.5,car.wheelRot);
   }else{
     rr(-108,-28,216,56,8,'#a95f49','#141719');
     text('NIVA',0,-7,14,'#fff','center');

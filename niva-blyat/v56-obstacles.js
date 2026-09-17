@@ -1,11 +1,12 @@
 /* V5.6 — illustrated roadside hazards.  Visuals only: v4-game.js owns every hitbox. */
 (function(){
   var legacyDrawObstacle=window.drawObstacle;
-  var snowBear=new Image(), woodStop=new Image(), pedestrian=new Image(), tireStack=new Image();
+  var snowBear=new Image(), woodStop=new Image(), pedestrian=new Image(), tireStack=new Image(), samovar=new Image();
   snowBear.src='./obstacle-snow-bear-v56.png?v=56hazards';
   woodStop.src='./obstacle-wood-stop-v57.png?v=57scale';
   pedestrian.src='./obstacle-pedestrian-v57.png?v=57scale';
   tireStack.src='./obstacle-tires-v58.png?v=58variety';
+  samovar.src='./obstacle-samovar-v59.png?v=59absurd';
 
   function ready(image){return image.complete&&image.naturalWidth>0;}
   function ice(o){
@@ -30,6 +31,19 @@
     rect(x+10,y+22,72,28,'#2d4144','#162326');rect(x+17,y+27,56,5,'#688083');
     for(var i=0;i<3;i++)rect(x+17+i*23,y+55,11,8,'#182225');
     ctx.fillStyle='#d95343';ctx.fillRect(x+38,y+31,16,9);text('ЖЭК',o.x,y+33,7,'#ecdbc0','center');ctx.restore();
+  }
+  function matryoshka(o){
+    var x=o.x,y=GROUND-51;ctx.save();
+    ctx.fillStyle='#c6473e';ctx.beginPath();ctx.ellipse(x,y+25,18,26,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e4c9a1';ctx.beginPath();ctx.arc(x,y+19,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#253849';ctx.beginPath();ctx.arc(x-3,y+18,1.5,0,7);ctx.arc(x+3,y+18,1.5,0,7);ctx.fill();
+    ctx.strokeStyle='#f0ebdc';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+24,4,0,Math.PI);ctx.stroke();
+    ctx.fillStyle='#dbe8ea';ctx.fillRect(x-20,y+47,40,4);ctx.restore();
+  }
+  function barrel(o){
+    var x=o.x-27,y=GROUND-50;ctx.save();
+    rr(x,y,54,50,9,'#3f6780','#1d3543');rect(x,y+10,54,5,'#d2e2e7');rect(x,y+34,54,5,'#d2e2e7');
+    ctx.fillStyle='#f1b743';ctx.beginPath();ctx.arc(o.x,y+24,7,0,7);ctx.fill();ctx.fillStyle='#25333b';ctx.fillRect(o.x-2,y+19,4,10);ctx.restore();
   }
   function checkpoint(o){
     var xs=[o.x-o.w/2];if(o.type==='double')xs.push(o.x-o.w/2+o.offset);
@@ -59,16 +73,18 @@
   window.drawObstacle=function(o){
     if(o.type==='pothole'){ice(o);return;}
     if(o.type==='truck'){
-      if(o.skin==null)o.skin=Math.floor(Math.random()*2);
-      if(o.skin===0)vodkaCrates(o);else snowDumpster(o);return;
+      if(o.skin==null)o.skin=Math.floor(Math.random()*3);
+      if(o.skin===0)vodkaCrates(o);else if(o.skin===1)snowDumpster(o);else if(ready(samovar)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(samovar,o.x-47,GROUND-72,94,72);ctx.restore();}else vodkaCrates(o);return;
     }
     if(o.type==='babushka'){
-      if(o.skin==null)o.skin=Math.floor(Math.random()*2);
+      if(o.skin==null)o.skin=Math.floor(Math.random()*3);
+      if(o.skin===2){matryoshka(o);return;}
       var isPedestrian=o.skin===0, sprite=isPedestrian?pedestrian:snowBear;
       if(ready(sprite)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(sprite,o.x-(isPedestrian?34:42),GROUND-(isPedestrian?66:66),isPedestrian?68:84,isPedestrian?66:66);ctx.restore();return;}
     }
     if(o.type==='barrier'){
-      if(o.skin==null)o.skin=Math.floor(Math.random()*2);
+      if(o.skin==null)o.skin=Math.floor(Math.random()*3);
+      if(o.skin===2){barrel(o);return;}
       var barrierSprite=o.skin===0?woodStop:tireStack;
       if(ready(barrierSprite)){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(barrierSprite,o.x-42,GROUND-64,84,64);ctx.restore();return;}
     }

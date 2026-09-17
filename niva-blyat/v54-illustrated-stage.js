@@ -36,7 +36,7 @@
     ctx.translate(-3,-48+squat*4);
     ctx.rotate(lean*.18);
     /* Shoes meet the painted roof line instead of cutting through the cabin. */
-    ctx.drawImage(gopnikSprite,-68,-142,136,113);
+    ctx.drawImage(gopnikSprite,-68,-128,136,113);
     ctx.restore();
   };
 

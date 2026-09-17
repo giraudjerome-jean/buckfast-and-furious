@@ -6,7 +6,7 @@
   stages[1].decoding='async'; stages[1].src='./moscow-night-stage-v54-a.png?v=54scroll-6f55c5f';
   stages[2].decoding='async'; stages[2].src='./moscow-night-stage-v54-b.png?v=54scroll-6f55c5f';
   gopnikSprite.decoding='async';
-  gopnikSprite.src='./gopnik-pixel-sprite-v54.png?v=54illustrated-34aa304';
+  gopnikSprite.src='./gopnik-pixel-sprite-v55.png?v=55sprites-f4c9f97';
 
   window.background=function(){
     if(!stages.every(function(stage){return stage.complete&&stage.naturalWidth;})){proceduralFallback();return;}
@@ -36,7 +36,7 @@
     ctx.translate(-3,-48+squat*4);
     ctx.rotate(lean*.18);
     /* Shoes meet the painted roof line instead of cutting through the cabin. */
-    ctx.drawImage(gopnikSprite,-70,-166,140,146);
+    ctx.drawImage(gopnikSprite,-68,-142,136,113);
     ctx.restore();
   };
 

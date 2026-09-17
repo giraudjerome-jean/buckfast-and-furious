@@ -63,8 +63,8 @@ function drawCar(){
   var compression=car.impact>0?Math.sin(car.impact*28)*car.impact*25:0;
   ctx.save();ctx.translate(CAR_X,car.y);ctx.rotate(car.pitch);ctx.translate(0,compression*.20);
   if(typeof nivaPhoto!=='undefined'&&nivaPhoto&&nivaPhoto.complete&&nivaPhoto.naturalWidth){
-    ctx.drawImage(nivaPhoto,-125,-78,250,111);
-    drawNivaWheelV5(-71,12,18.5,car.wheelRot);drawNivaWheelV5(82,12,18.5,car.wheelRot);
+    ctx.drawImage(nivaPhoto,-125,-89,250,125);
+    drawNivaWheelV5(-70,6,22,car.wheelRot);drawNivaWheelV5(70,6,22,car.wheelRot);
   }else{rr(-108,-28,216,56,8,'#a95f49','#141719');text('NIVA',0,-7,14,'#fff','center');}
   var lean=clamp(car.vy/720,-.22,.26),squat=clamp(Math.abs(car.vy)/650,0,.35)+Math.abs(compression)*.02;
   drawGopnikV52(lean,squat);

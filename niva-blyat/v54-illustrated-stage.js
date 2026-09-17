@@ -37,6 +37,18 @@
     ctx.rotate(lean*.18);
     /* Shoes meet the painted roof line instead of cutting through the cabin. */
     ctx.drawImage(gopnikSprite,-68,-128,136,113);
+    /* Tiny animated cigarette smoke: deliberately chunky to match the pixel stage. */
+    var smokeTime=elapsed*2.45;
+    for(var puff=0;puff<6;puff++){
+      var drift=Math.sin(smokeTime+puff*1.7)*2.8;
+      var rise=(elapsed*15+puff*5)%8;
+      var sx=Math.round(45+puff*3.3+drift);
+      var sy=Math.round(-137-puff*7-rise);
+      ctx.globalAlpha=.78-puff*.09;
+      ctx.fillStyle=puff%2?'#b9c5ce':'#edf2f3';
+      ctx.fillRect(sx,sy,puff<2?3:4,puff<2?3:4);
+    }
+    ctx.globalAlpha=1;
     ctx.restore();
   };
 

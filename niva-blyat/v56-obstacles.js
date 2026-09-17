@@ -1,11 +1,12 @@
 /* V6.1 — finished illustrated obstacle roster. Physics and hitboxes stay in v4-game.js. */
 (function(){
-  var bear=new Image(), washer=new Image(), vending=new Image(), fishingHut=new Image(), piano=new Image();
+  var bear=new Image(), washer=new Image(), vending=new Image(), fishingHut=new Image(), piano=new Image(), skateBabushka=new Image();
   bear.src='./obstacle-bear-profile-v63.png?v=63perspective';
   washer.src='./obstacle-washer-front-v63.png?v=63perspective';
   vending.src='./obstacle-vending-front-v63.png?v=63perspective';
   fishingHut.src='./obstacle-hut-front-v63.png?v=63perspective';
   piano.src='./obstacle-piano-profile-v63.png?v=63perspective';
+  skateBabushka.src='./obstacle-skate-babushka-v65.png?v=65moving';
 
   function ready(image){ return image.complete && image.naturalWidth; }
   function choose(o,count){
@@ -37,6 +38,10 @@
     ctx.fillStyle='#bad7ec'; ctx.globalAlpha=.6; ctx.fillRect(x+w*.19,y+4,4,1); ctx.fillRect(x+w*.74,y+9,5,1);
     ctx.restore();
   }
+  function moving(o){
+    var vehicles=[bear,piano,skateBabushka], sizes=[[128,96],[112,78],[112,86]], i=choose(o,vehicles.length);
+    sprite(vehicles[i],o,sizes[i][0],sizes[i][1]);
+  }
   function checkpoint(o){
     var x=o.x-o.w/2, w=o.w, top=GROUND-o.h, base=GROUND;
     ctx.save();
@@ -59,21 +64,6 @@
   }
 
   window.drawObstacle=function(o){
-    if(o.type==='pothole'){ blackIce(o); return; }
-    if(o.type==='truck'){
-      var big=[washer,vending,fishingHut], bigSize=[[104,92],[104,96],[118,104]], bi=choose(o,big.length);
-      sprite(big[bi],o,bigSize[bi][0],bigSize[bi][1]); return;
-    }
-    if(o.type==='barrier'){
-      var compact=[piano,bear], compactSize=[[112,78],[128,96]], ci=choose(o,compact.length);
-      sprite(compact[ci],o,compactSize[ci][0],compactSize[ci][1]); return;
-    }
-    if(o.type==='babushka'){
-      var people=[bear,washer], peopleSize=[[128,96],[92,88]], pi=choose(o,people.length);
-      sprite(people[pi],o,peopleSize[pi][0],peopleSize[pi][1]); return;
-    }
-    if(o.type==='pipe'){ catenary(o); return; }
-    if(o.type==='gate' || o.type==='double'){ checkpoint(o); return; }
-    blackIce(o);
+    moving(o);
   };
 })();

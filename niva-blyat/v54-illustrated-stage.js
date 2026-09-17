@@ -1,16 +1,21 @@
 /* V5.4 — illustrated Moscow stage and hand-painted gopnik sprite. Gameplay stays untouched. */
 (function(){
   var proceduralFallback=window.background;
-  var stage=new Image(), gopnikSprite=new Image();
-  stage.decoding='async';
-  stage.src='./moscow-night-stage-v53.png?v=54illustrated-34aa304';
+  var stages=[new Image(),new Image(),new Image()], gopnikSprite=new Image();
+  stages[0].decoding='async'; stages[0].src='./moscow-night-stage-v53.png?v=54scroll-6f55c5f';
+  stages[1].decoding='async'; stages[1].src='./moscow-night-stage-v54-a.png?v=54scroll-6f55c5f';
+  stages[2].decoding='async'; stages[2].src='./moscow-night-stage-v54-b.png?v=54scroll-6f55c5f';
   gopnikSprite.decoding='async';
   gopnikSprite.src='./gopnik-pixel-sprite-v54.png?v=54illustrated-34aa304';
 
   window.background=function(){
-    if(!(stage.complete&&stage.naturalWidth)){proceduralFallback();return;}
-    /* Source artwork is near-16:9; slight overscan prevents edge seams. */
-    ctx.drawImage(stage,-3,0,W+6,H);
+    if(!stages.every(function(stage){return stage.complete&&stage.naturalWidth;})){proceduralFallback();return;}
+    /* Three full-width panels = a long city stage before the loop comes back. */
+    var strip=W*stages.length, offset=(distance*5.2)%strip;
+    for(var panel=-1;panel<=stages.length;panel++){
+      var index=(panel%stages.length+stages.length)%stages.length;
+      ctx.drawImage(stages[index],Math.round(panel*W-offset)-2,0,W+4,H);
+    }
     /* The scene is static by design; only the near snow moves with the run. */
     ctx.save();ctx.imageSmoothingEnabled=false;
     for(var i=0;i<28;i++){
@@ -30,7 +35,8 @@
     ctx.imageSmoothingEnabled=false;
     ctx.translate(-3,-48+squat*4);
     ctx.rotate(lean*.18);
-    ctx.drawImage(gopnikSprite,-70,-126,140,146);
+    /* Shoes meet the painted roof line instead of cutting through the cabin. */
+    ctx.drawImage(gopnikSprite,-70,-166,140,146);
     ctx.restore();
   };
 

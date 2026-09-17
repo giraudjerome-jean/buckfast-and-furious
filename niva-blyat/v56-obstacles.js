@@ -9,7 +9,7 @@
   piano.src='./obstacle-piano-profile-v63.png?v=63perspective';
   skateBabushka.src='./obstacle-skate-babushka-v65.png?v=65moving';
   rocketRider.src='./obstacle-rocket-rider-v67.png?v=67sheet';
-  cyclist.src='./obstacle-cyclist-v67.png?v=67sheet';
+  cyclist.src='./obstacle-cyclist-v70.png?v=70clean-cut';
   armoredBear.src='./obstacle-armored-bear-v67.png?v=67sheet';
   samovarBot.src='./obstacle-samovar-bot-v69.png?v=69clean-cut';
   policeNiva.src='./obstacle-police-niva-v67.png?v=67sheet';

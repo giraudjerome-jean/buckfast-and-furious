@@ -1,20 +1,21 @@
 /* V5.4 — illustrated Moscow stage and hand-painted gopnik sprite. Gameplay stays untouched. */
 (function(){
   var proceduralFallback=window.background;
-  var stages=[new Image(),new Image(),new Image()], gopnikSprite=new Image();
+  var stages=[new Image(),new Image(),new Image()], ghettoStage=new Image(), gopnikSprite=new Image();
   stages[0].decoding='async'; stages[0].src='./moscow-night-stage-v53.png?v=54scroll-6f55c5f';
   stages[1].decoding='async'; stages[1].src='./moscow-night-stage-v54-a.png?v=54scroll-6f55c5f';
   stages[2].decoding='async'; stages[2].src='./moscow-night-stage-v54-b.png?v=54scroll-6f55c5f';
+  ghettoStage.decoding='async'; ghettoStage.src='./moscow-ghetto-stage-v79.png?v=79ghetto';
   gopnikSprite.decoding='async';
   gopnikSprite.src='./gopnik-pixel-sprite-v55.png?v=55sprites-f4c9f97';
 
   window.background=function(){
-    if(!stages.every(function(stage){return stage.complete&&stage.naturalWidth;})){proceduralFallback();return;}
+    if(!stages.every(function(stage){return stage.complete&&stage.naturalWidth;})||!(ghettoStage.complete&&ghettoStage.naturalWidth)){proceduralFallback();return;}
     /* Three full-width panels = a long city stage before the loop comes back. */
-    var strip=W*stages.length, offset=(distance*5.2)%strip;
-    for(var panel=-1;panel<=stages.length;panel++){
-      var index=(panel%stages.length+stages.length)%stages.length;
-      ctx.drawImage(stages[index],Math.round(panel*W-offset)-2,0,W+4,H);
+    var activeStages=zone===3?[ghettoStage]:stages, strip=W*activeStages.length, offset=(distance*5.2)%strip;
+    for(var panel=-1;panel<=activeStages.length;panel++){
+      var index=(panel%activeStages.length+activeStages.length)%activeStages.length;
+      ctx.drawImage(activeStages[index],Math.round(panel*W-offset)-2,0,W+4,H);
     }
     /* The run advances from blue night to blizzard, industry and a dirty red dawn. */
     var moods=[

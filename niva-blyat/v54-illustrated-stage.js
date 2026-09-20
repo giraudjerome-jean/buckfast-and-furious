@@ -12,10 +12,17 @@
   window.background=function(){
     if(!stages.every(function(stage){return stage.complete&&stage.naturalWidth;})||!(ghettoStage.complete&&ghettoStage.naturalWidth)){proceduralFallback();return;}
     /* Three full-width panels = a long city stage before the loop comes back. */
-    var activeStages=zone===3?[ghettoStage]:stages, strip=W*activeStages.length, offset=(distance*5.2)%strip;
+    var activeStages=stages, strip=W*activeStages.length, offset=(distance*5.2)%strip;
     for(var panel=-1;panel<=activeStages.length;panel++){
       var index=(panel%activeStages.length+activeStages.length)%activeStages.length;
       ctx.drawImage(activeStages[index],Math.round(panel*W-offset)-2,0,W+4,H);
+    }
+    if(zone===3){
+      var enterGhetto=clamp(1-zoneFlash/1.4,0,1), ghettoOffset=(distance*5.2)%W;
+      ctx.save();ctx.globalAlpha=enterGhetto;
+      ctx.drawImage(ghettoStage,-Math.round(ghettoOffset)-2,0,W+4,H);
+      ctx.drawImage(ghettoStage,Math.round(W-ghettoOffset)-2,0,W+4,H);
+      ctx.restore();
     }
     /* The run advances from blue night to blizzard, industry and a dirty red dawn. */
     var moods=[

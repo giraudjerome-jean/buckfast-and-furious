@@ -19,10 +19,19 @@
     if(o.skin==null) o.skin=Math.floor(Math.random()*count);
     return o.skin%count;
   }
-  var originalCollides=collides;
+  function art(o){
+    var images=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
+    var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,images.length);
+    if(i===3&&o.flightY==null)o.flightY=Math.random()<.5?175:235;
+    return {image:images[i],w:sizes[i][0],h:sizes[i][1],i:i,y:i===3?o.flightY:GROUND-sizes[i][1]};
+  }
   collides=function(o){
-    if(o.flightY!=null)return intersects(carBox(),{x:o.x-78,y:o.flightY,w:156,h:108});
-    return originalCollides(o);
+    var a=art(o), b=carBox();
+    if(a.i===3){
+      var rocketBox={x:o.x-a.w*.37,y:a.y+24,w:a.w*.74,h:62};
+      return intersects(b,rocketBox);
+    }
+    return intersects(b,{x:o.x-a.w*.34,y:a.y+7,w:a.w*.68,h:a.h-12});
   };
   function sprite(image,o,w,h,airborne){
     if(!ready(image)) return false;
@@ -60,14 +69,11 @@
     ctx.restore();
   }
   function moving(o){
-    var vehicles=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
-    var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,vehicles.length);
-    if(i===3&&o.flightY==null)o.flightY=Math.random()<.5?190:310;
-    if(i===2){snowWake(o.x-39,1,7);snowWake(o.x+36,1,19);}
-    if(i===4){snowWake(o.x-43,2,13);snowWake(o.x+45,2,31);}
-    if(i===7){snowWake(o.x-62,3,17);snowWake(o.x+63,3,37);}
-    var lift=i===3?GROUND-sizes[i][1]-o.flightY:0;
-    sprite(vehicles[i],o,sizes[i][0],sizes[i][1],lift);
+    var a=art(o);
+    if(a.i===2){snowWake(o.x-39,1,7);snowWake(o.x+36,1,19);}
+    if(a.i===4){snowWake(o.x-43,2,13);snowWake(o.x+45,2,31);}
+    if(a.i===7){snowWake(o.x-62,3,17);snowWake(o.x+63,3,37);}
+    sprite(a.image,o,a.w,a.h,a.i===3?GROUND-a.h-a.y:0);
   }
   function checkpoint(o){
     var x=o.x-o.w/2, w=o.w, top=GROUND-o.h, base=GROUND;

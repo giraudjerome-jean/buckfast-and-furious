@@ -16,14 +16,24 @@
       var index=(panel%stages.length+stages.length)%stages.length;
       ctx.drawImage(stages[index],Math.round(panel*W-offset)-2,0,W+4,H);
     }
-    /* The scene is static by design; only the near snow moves with the run. */
+    /* The run advances from blue night to blizzard, industry and a dirty red dawn. */
+    var moods=[
+      {wash:'rgba(28,65,124,.10)',snow:28,wind:0},
+      {wash:'rgba(99,71,150,.16)',snow:58,wind:1},
+      {wash:'rgba(185,98,39,.13)',snow:36,wind:0},
+      {wash:'rgba(154,42,45,.16)',snow:22,wind:0}
+    ], mood=moods[Math.min(3,zone)];
+    ctx.fillStyle=mood.wash;ctx.fillRect(0,0,W,H);
+    if(zone===2){ctx.save();ctx.globalAlpha=.10;ctx.fillStyle='#e6a15d';for(var smoke=0;smoke<5;smoke++){var sx=(smoke*237-distance*.34)%(W+190)-95;ctx.beginPath();ctx.ellipse(sx,98+(smoke%2)*38,100,25,0,0,Math.PI*2);ctx.fill();}ctx.restore();}
+    if(zone===3){ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#f06e4e';ctx.fillRect(0,366,W,2);ctx.restore();}
+    /* Near snow becomes a blowing blizzard in the second part of the run. */
     ctx.save();ctx.imageSmoothingEnabled=false;
-    for(var i=0;i<28;i++){
-      var x=(i*113+Math.floor(distance*(i%3+1.2)))%(W+30)-15;
+    for(var i=0;i<mood.snow;i++){
+      var x=(i*113+Math.floor(distance*(i%3+1.2)))%(W+30)-15+(mood.wind?Math.sin(elapsed*3+i)*22:0);
       var y=(i*61+Math.floor(elapsed*(8+i%4)))%430;
-      var size=i%5===0?2:1;
+      var size=i%7===0?2:1;
       ctx.fillStyle=i%3===0?'rgba(236,246,255,.78)':'rgba(218,234,244,.46)';
-      ctx.fillRect(x,y,size,size);
+      ctx.fillRect(x,y,mood.wind&&i%5===0?size+3:size,size);
     }
     ctx.restore();
   };

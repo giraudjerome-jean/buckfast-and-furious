@@ -22,7 +22,7 @@
   function art(o){
     var images=[bear,piano,skateBabushka,rocketRider,cyclist,armoredBear,samovarBot,policeNiva];
     var sizes=[[128,96],[160,112],[154,118],[178,126],[162,128],[166,128],[112,128],[196,118]], i=choose(o,images.length);
-    if(i===3&&o.flightY==null)o.flightY=Math.random()<.5?175:235;
+    if(i===3&&o.flightY==null)o.flightY=Math.random()<.5?92:235;
     return {image:images[i],w:sizes[i][0],h:sizes[i][1],i:i,y:i===3?o.flightY:GROUND-sizes[i][1]};
   }
   collides=function(o){

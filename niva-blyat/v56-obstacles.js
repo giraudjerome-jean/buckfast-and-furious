@@ -16,7 +16,7 @@
 
   function ready(image){ return image.complete && image.naturalWidth; }
   function choose(o,count){
-    if(o.skin==null) o.skin=Math.floor(Math.random()*count);
+    if(o.skin==null) o.skin=pick([0,0,0,1,1,1,2,2,2,4,4,7,3,5,6]);
     return o.skin%count;
   }
   function art(o){
@@ -73,8 +73,16 @@
     if(a.i===2){snowWake(o.x-39,1,7);snowWake(o.x+36,1,19);}
     if(a.i===4){snowWake(o.x-43,2,13);snowWake(o.x+45,2,31);}
     if(a.i===7){snowWake(o.x-62,3,17);snowWake(o.x+63,3,37);}
+    if((a.i===3||a.i===5||a.i===6||a.i===7)&&o.x<700&&!o.warned){o.warned=true;tone(138,.09,.07,'square',audio?audio.ac.currentTime:null);}
+    if((a.i===3||a.i===5||a.i===6||a.i===7)&&o.x<680){ctx.save();ctx.globalAlpha=.55+.35*Math.sin(elapsed*11);ctx.fillStyle='#ff7152';ctx.fillRect(Math.round(o.x-2),Math.round(a.y-15),4,4);ctx.restore();}
     sprite(a.image,o,a.w,a.h,a.i===3?GROUND-a.h-a.y:0);
   }
+  var nativeOnPass=onPass;
+  onPass=function(o){
+    var a=art(o), b=carBox(), bottom=a.y+a.h-10, gap=Math.abs(b.y-bottom);
+    nativeOnPass(o);
+    if(gap>0&&gap<26){score++;nearMissT=.45;shake=Math.max(shake,.12);burst(CAR_X+65,b.y+34,7,'#e7f5fb',.55);tone(980,.05,.055,'square',audio?audio.ac.currentTime:null);speechText='PRÈS ! +1';speechT=.6;}
+  };
   function checkpoint(o){
     var x=o.x-o.w/2, w=o.w, top=GROUND-o.h, base=GROUND;
     ctx.save();

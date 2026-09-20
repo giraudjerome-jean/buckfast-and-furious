@@ -28,10 +28,14 @@
   collides=function(o){
     var a=art(o), b=carBox();
     if(a.i===3){
-      var rocketBox={x:o.x-a.w*.37,y:a.y+24,w:a.w*.74,h:62};
+      var rocketBox={x:o.x-a.w*.26,y:a.y+32,w:a.w*.52,h:46};
       return intersects(b,rocketBox);
     }
-    return intersects(b,{x:o.x-a.w*.34,y:a.y+7,w:a.w*.68,h:a.h-12});
+    var profiles=[
+      [.50,.45], [.50,.48], [.46,.46], [.50,.50],
+      [.44,.52], [.48,.43], [.46,.55], [.55,.42]
+    ], p=profiles[a.i], w=a.w*p[0], h=a.h*p[1];
+    return intersects(b,{x:o.x-w/2,y:a.y+a.h-h-4,w:w,h:h});
   };
   function sprite(image,o,w,h,airborne){
     if(!ready(image)) return false;

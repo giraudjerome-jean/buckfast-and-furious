@@ -998,6 +998,13 @@
         /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(articleText);
       const titleDrinkContext =
         /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/.test(title);
+      const titleMentionsBuckfastAbbey =
+        /\b(buckfast abbey|abbaye de buckfast)\b/.test(title);
+      const titleLooksLikeRoutineAbbeyNews =
+        /\b(abbots?|choirs?|choral|concerts?|recitals?|requiem|liturgy|liturgical|mass|pilgrimages?|retreats?|guided tours?|open days?|organist|organ recital|worship|prayer|monastic|heritage|exhibitions?|festivals?|tourism|tourist|visitor centre|gardens?|gift shop|funeral|funerals|mourners?|chorale|chœur|choeur|récital|recital|messe|pèlerinage|pelerinage|retraite|visites? guidées?|visites? guidees?|orgue|culte|prière|priere|monastique|patrimoine|expositions?|touristique|jardins?|funérailles|funerailles)\b/.test(title);
+      const titleAbbeyKeepContext =
+        /\b(tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottles?|buckie|bucky|sales?|brand|production|bottling|distribution|licensing|exports?|revenue|profits?|police|cops?|officers?|search(?:ed|es|ing)?|investigat(?:e|ed|es|ing|ion)|arrests?|arrested|charged|attacks?|assaults?|fires?|blaze|thefts?|stolen|burglar(?:y|ies)|break[- ]ins?|missing|threats?|weapons?|emergency|incidents?|scandals?|vandalis(?:m|ed)|vandaliz(?:e|ed|es|ing)|injured|wounded|crimes?|court|crash|collision)\b/.test(title);
+      const shouldKeepAbbeyStory = titleMentionsBuckfastAbbey && titleAbbeyKeepContext;
       const titleUsesBuckfastAsPlace =
         /\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/.test(title) ||
         /\b(near|at|in|around|through)\s+buckfast\b/.test(title);
@@ -1005,6 +1012,7 @@
         /\b(a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/.test(title);
 
       if (beeContext) return true;
+      if (titleMentionsBuckfastAbbey && titleLooksLikeRoutineAbbeyNews && !shouldKeepAbbeyStory) return true;
 
       const blockedPhrases = [
         "stobaza",
@@ -1061,7 +1069,7 @@
         /\bbuckfast\s+(road|street|avenue|lane|way|drive|close|court|place|terrace|gardens)\b/.test(articleText) ||
         /\b(near|at|in|around|through)\s+buckfast\b/.test(articleText)
       ) {
-        if (!drinkContext) return true;
+        if (!drinkContext && !shouldKeepAbbeyStory) return true;
       }
 
       const looksLikeProductSpam =

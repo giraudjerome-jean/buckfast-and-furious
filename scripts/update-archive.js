@@ -10,6 +10,10 @@ const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collis
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
 const BEE_CONTEXT = /\b(?:adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
+const BUCKFAST_ABBEY = /\b(?:buckfast abbey|abbaye de buckfast)\b/i;
+const ABBEY_ROUTINE_CONTEXT = /\b(?:abbots?|choirs?|choral|concerts?|recitals?|requiem|liturgy|liturgical|mass|pilgrimages?|retreats?|guided tours?|open days?|organist|organ recital|worship|prayer|monastic|heritage|exhibitions?|festivals?|tourism|tourist|visitor centre|gardens?|gift shop|funeral|funerals|mourners?|chorale|chœur|choeur|concerts?|récital|recital|messe|pèlerinage|pelerinage|retraite|visites? guidées?|visites? guidees?|orgue|culte|prière|priere|monastique|patrimoine|expositions?|tourisme|touristique|jardins?|funérailles|funerailles)\b/i;
+const ABBEY_DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottles?|buckie|bucky|sales?|brand|production|bottling|distribution|licensing|exports?|revenue|profits?)\b/i;
+const ABBEY_INCIDENT_CONTEXT = /\b(?:police|cops?|officers?|search(?:ed|es|ing)?|investigat(?:e|ed|es|ing|ion)|arrests?|arrested|charged|attacks?|assaults?|fires?|blaze|thefts?|stolen|burglar(?:y|ies)|break[- ]ins?|missing|threats?|weapons?|emergency|incidents?|scandals?|vandalis(?:m|ed)|vandaliz(?:e|ed|es|ing)|injured|wounded|crimes?|court|crash|collision)\b/i;
 const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
 const TOPIC_STOP_WORDS = new Set([
   "about", "after", "again", "before", "being", "could", "court", "from",
@@ -49,6 +53,17 @@ function hasStrongDescriptionEvidence(title, description) {
     mentionsBuckfast(description) >= 2 &&
     DRINK_CONTEXT.test(description) &&
     hasTopicOverlap(title, description);
+}
+
+function hasAbbeyKeepContext(title) {
+  return BUCKFAST_ABBEY.test(title) &&
+    (ABBEY_DRINK_CONTEXT.test(title) || ABBEY_INCIDENT_CONTEXT.test(title));
+}
+
+function isRoutineAbbeyStory(title) {
+  return BUCKFAST_ABBEY.test(title) &&
+    ABBEY_ROUTINE_CONTEXT.test(title) &&
+    !hasAbbeyKeepContext(title);
 }
 
 function splitPublisherTitle(value) {
@@ -155,7 +170,9 @@ function isRelevant(item) {
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.
   if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
-  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title)) return false;
+  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || isRoutineAbbeyStory(title)) {
+    return false;
+  }
 
   // RSS descriptions can contain unrelated sidebars or adverts mentioning a
   // bottle. A traffic headline that uses Buckfast as a location must therefore
@@ -165,7 +182,11 @@ function isRelevant(item) {
     return false;
   }
 
-  if ((LOCATION_ONLY.test(text) || NEAR_PLACE.test(text)) && !DRINK_CONTEXT.test(text)) return false;
+  if ((LOCATION_ONLY.test(text) || NEAR_PLACE.test(text)) &&
+      !DRINK_CONTEXT.test(text) &&
+      !hasAbbeyKeepContext(title)) {
+    return false;
+  }
 
   return true;
 }
@@ -187,4 +208,4 @@ function run(feedPath = "feed.json", archivePath = "archive.json") {
 
 if (require.main === module) run(process.argv[2], process.argv[3]);
 
-module.exports = { deduplicate, headlineKey, isNearDuplicateHeadline, isRelevant, merge, splitPublisherTitle };
+module.exports = { deduplicate, headlineKey, isNearDuplicateHeadline, isRelevant, isRoutineAbbeyStory, merge, splitPublisherTitle };

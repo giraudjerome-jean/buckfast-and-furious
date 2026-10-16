@@ -16,6 +16,9 @@ test("rejects unrelated A38 stories and Buckfast as a place", () => {
     title: "LIVE: A38 near <b>Buckfast</b> closed after serious collision causes Devon delays",
     description: "Traffic update with an unrelated Buckfast bottle link in the page sidebar."
   }), false);
+  assert.equal(isRelevant({
+    title: "A38 closed near Buckfast Abbey after collision"
+  }), false);
 });
 test("rejects Buckfastleigh and shopping spam", () => {
   assert.equal(isRelevant({ title: "Buckfastleigh community news" }), false);
@@ -26,6 +29,35 @@ test("rejects Buckfast bee and Adami breeding content", () => {
     title: "THIS is what a true Buckfast Adami looks like! #shorts - YouTube",
     description: "A queen bee from a Buckfast breeding line."
   }), false);
+});
+test("filters routine Buckfast Abbey news without hiding drink or incident stories", () => {
+  assert.equal(isRelevant({
+    title: "Buckfast Abbey announces two major choral concerts - The Moorlander"
+  }), false);
+  assert.equal(isRelevant({
+    title: "Buckfast Abbey Choir to celebrate Venice's golden age"
+  }), false);
+  assert.equal(isRelevant({
+    title: "Buckfast Abbey hosts a private Requiem and guided tour"
+  }), false);
+  assert.equal(isRelevant({
+    title: "Organ recital returns to Buckfast Abbey"
+  }), false);
+  assert.equal(isRelevant({
+    title: "Buckfast Abbey expands tonic wine production"
+  }), true);
+  assert.equal(isRelevant({
+    title: "Buckfast Abbey reports higher Buckfast sales and profits"
+  }), true);
+  assert.equal(isRelevant({
+    title: "Police investigate theft at Buckfast Abbey"
+  }), true);
+  assert.equal(isRelevant({
+    title: "Fire closes Buckfast Abbey visitor centre"
+  }), true);
+  assert.equal(isRelevant({
+    title: "Police investigate theft during concert at Buckfast Abbey"
+  }), true);
 });
 test("accepts only coherent description-only matches", () => {
   assert.equal(isRelevant({ title: "Licensing debate", description: "Buckfast Tonic Wine and Buckfast sales were discussed." }), false);

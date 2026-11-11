@@ -1,0 +1,15 @@
+{
+  "name": "buckfast-and-furious",
+  "private": true,
+  "description": "Static build of buckfastandfurious.com",
+  "scripts": {
+    "build": "node scripts/build-site.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.0"
+  }
+}

@@ -3,7 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buckfast and Furious</title>
+  <title>Buckfast and Furious — Daily Buckfast crime reports and odd news</title>
+  <meta name="description" content="Every news story involving Buckfast tonic wine, collected daily: assaults, court cases, police reports, odd news and cultural fallout, each with a short summary and a link to the original article." />
+  <link rel="canonical" href="https://buckfastandfurious.com/" />
+  <meta name="theme-color" content="#f35a08" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Buckfast and Furious" />
+  <meta property="og:title" content="Buckfast and Furious — Daily Buckfast crime reports and odd news" />
+  <meta property="og:description" content="Every news story involving Buckfast tonic wine, collected daily: assaults, court cases, police reports and odd news." />
+  <meta property="og:url" content="https://buckfastandfurious.com/" />
+  <meta property="og:image" content="https://buckfastandfurious.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Buckfast and Furious",
+      "url": "https://buckfastandfurious.com/",
+      "description": "Daily index of news stories involving Buckfast tonic wine: crime reports, court cases, odd news and cultural fallout.",
+      "inLanguage": "en"
+    }
+  </script>
 
   <style>
     @font-face {
@@ -791,6 +813,9 @@
     const shareStatus = document.getElementById("share-status");
 
     let allEntries = [];
+    // Links present in the published archive. Only these entries have a
+    // generated page under /incidents/, so only these titles are linked.
+    let publishedLinks = new Set();
     let activeCategory = "All";
     let currentLang = localStorage.getItem("buckfast_lang") || "en";
     let preparedStoryAsset = null;
@@ -1203,12 +1228,47 @@
         : cleanText(entry.description || "");
     }
 
+    // Google Alerts wraps every article in a google.com/url redirect. Point
+    // readers (and search engines) straight at the original article instead.
+    function getSourceUrl(link) {
+      try {
+        const url = new URL(link);
+        if (/(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname === "/url") {
+          const target = url.searchParams.get("url") || url.searchParams.get("q");
+          if (target && /^https?:\/\//i.test(target)) return target.replace(/"/g, "%22");
+        }
+        return link;
+      } catch {
+        return link || "";
+      }
+    }
+
     function getSourceHost(link) {
       try {
-        return new URL(link).hostname.replace(/^www\./, "");
+        return new URL(getSourceUrl(link)).hostname.replace(/^www\./, "");
       } catch {
         return "source";
       }
+    }
+
+    // Stable URL of the generated incident page. The date is read from the
+    // raw string (not through Date) so the slug is identical whatever the
+    // visitor's time zone or the build server's.
+    function entrySlug(entry) {
+      const raw = String(entry && (entry.pubDate || entry.date) || "");
+      const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+      const day = match ? match[1] : (publicationDay(entry) || "undated");
+      let slug = "";
+      for (const word of headlineKey(entry && entry.title).split(" ").filter(Boolean)) {
+        const next = slug ? `${slug}-${word}` : word;
+        if (next.length > 70) break;
+        slug = next;
+      }
+      return `${day}-${slug || "incident"}`;
+    }
+
+    function entryPath(entry) {
+      return `/incidents/${entrySlug(entry)}/`;
     }
 
     function splitPublisherTitle(value) {
@@ -1537,6 +1597,7 @@
         archive = [];
       }
 
+      publishedLinks = new Set(archive.map(item => item && item.link).filter(Boolean));
       prepareEntries(archive);
 
       applyStaticLanguage();
@@ -1595,6 +1656,9 @@
 
         const titleText = getEntryTitle(entry);
         const summaryText = truncate(getEntrySummary(entry), 180);
+        const titleHtml = publishedLinks.has(entry.link)
+          ? `<a href="${entryPath(entry)}">${titleText}</a>`
+          : titleText;
 
         article.innerHTML = `
           <div class="entry-meta">
@@ -1604,10 +1668,10 @@
           </div>
 
           <div class="entry-body">
-            <h2 class="entry-title">${titleText}</h2>
+            <h2 class="entry-title">${titleHtml}</h2>
             <div class="entry-summary">${summaryText}</div>
             <div class="entry-quote">“${truncate(summaryText, 120)}”</div>
-            <a class="entry-link" href="${entry.link}" target="_blank" rel="noopener noreferrer">${t("readSource")}</a>
+            <a class="entry-link" href="${getSourceUrl(entry.link)}" target="_blank" rel="noopener noreferrer">${t("readSource")}</a>
 
             <div class="entry-actions">
               <button class="entry-export-btn entry-story-btn" type="button">${t("story")}</button>

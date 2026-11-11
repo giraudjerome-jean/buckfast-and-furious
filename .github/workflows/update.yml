@@ -3,14 +3,25 @@ name: Update archive
 on:
   schedule:
     - cron: '0 * * * *' # toutes les heures
+  push:
+    branches: [main] # republie le site après une modification manuelle
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: site-update
+  cancel-in-progress: false
 
 jobs:
   update:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
 
     steps:
       - name: Checkout repo
@@ -46,9 +57,56 @@ jobs:
           node scripts/update-archive.js feed.json archive.json
 
       - name: Commit changes
+        id: commit
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add archive.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update archive"
-          git push
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Update archive"
+            git pull --rebase origin main
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Builds the static pages (home with articles, one page per incident,
+  # sitemap.xml, robots.txt) and publishes them on GitHub Pages.
+  deploy:
+    needs: update
+    if: ${{ !cancelled() && needs.update.result != 'failure' && (github.event_name != 'schedule' || needs.update.outputs.changed == 'true') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: main # inclut l'archive que le job précédent vient de pousser
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install, test and build
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

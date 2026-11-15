@@ -198,6 +198,32 @@
       font-weight:400;
     }
 
+    .hero-count{
+      margin-top:20px;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+    }
+
+    .hero-count[hidden]{
+      display:none;
+    }
+
+    .hero-count-number{
+      font-size:clamp(44px, 5vw, 72px);
+      line-height:.9;
+      letter-spacing:-0.04em;
+      font-weight:900;
+    }
+
+    .hero-count-label{
+      font-size:14px;
+      line-height:1;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:var(--soft);
+    }
+
     .section-head{
       display:grid;
       grid-template-columns:1fr auto;
@@ -633,6 +659,11 @@
       <div class="hero-text" id="hero-text">
         Daily crime reports, odd news and cultural fallout linked to Buckfast.
       </div>
+
+      <div class="hero-count" id="hero-count" hidden>
+        <span class="hero-count-number" id="hero-count-number"></span>
+        <span class="hero-count-label" id="hero-count-label"></span>
+      </div>
     </section>
 
     <section class="section-head">
@@ -711,6 +742,8 @@
         heroText: "Daily crime reports, odd news and cultural fallout linked to Buckfast.",
         sectionTitle: "Latest incidents",
         liveFeed: "Live feed",
+        countOne: "article indexed",
+        countMany: "articles indexed",
         aboutTitle: "About",
         aboutText: "Buckfast and Furious collects and indexes daily news items involving Buckfast. Each entry includes a short summary, a short excerpt and a direct link to the original article.",
         share: "Share on Instagram",
@@ -746,6 +779,8 @@
         heroText: "Revue quotidienne des faits divers, nouvelles étranges et retombées culturelles liées à Buckfast.",
         sectionTitle: "Derniers incidents",
         liveFeed: "Flux en direct",
+        countOne: "article recensé",
+        countMany: "articles recensés",
         aboutTitle: "À propos",
         aboutText: "Buckfast and Furious collecte et indexe chaque jour des articles liés à Buckfast. Chaque entrée comprend un court résumé, un court extrait et un lien direct vers l’article d’origine.",
         share: "Partager sur Instagram",
@@ -1615,7 +1650,18 @@
       refreshFromFeeds(archive);
     }
 
+    function updateCount() {
+      const box = document.getElementById("hero-count");
+      const total = allEntries.length;
+      box.hidden = total === 0;
+      document.getElementById("hero-count-number").textContent =
+        total.toLocaleString(UI[currentLang].locale);
+      document.getElementById("hero-count-label").textContent =
+        total === 1 ? t("countOne") : t("countMany");
+    }
+
     function render(items) {
+      updateCount();
       feed.innerHTML = "";
 
       let visibleItems = items;

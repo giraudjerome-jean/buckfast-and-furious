@@ -30,7 +30,7 @@ test("rejects Buckfast bee and Adami breeding content", () => {
     description: "A queen bee from a Buckfast breeding line."
   }), false);
 });
-test("filters routine Buckfast Abbey news without hiding drink or incident stories", () => {
+test("keeps only abbey news about the drink", () => {
   assert.equal(isRelevant({
     title: "Buckfast Abbey announces two major choral concerts - The Moorlander"
   }), false);
@@ -51,13 +51,13 @@ test("filters routine Buckfast Abbey news without hiding drink or incident stori
   }), true);
   assert.equal(isRelevant({
     title: "Police investigate theft at Buckfast Abbey"
-  }), true);
+  }), false);
   assert.equal(isRelevant({
     title: "Fire closes Buckfast Abbey visitor centre"
-  }), true);
+  }), false);
   assert.equal(isRelevant({
     title: "Police investigate theft during concert at Buckfast Abbey"
-  }), true);
+  }), false);
 });
 test("accepts only coherent description-only matches", () => {
   assert.equal(isRelevant({ title: "Licensing debate", description: "Buckfast Tonic Wine and Buckfast sales were discussed." }), false);

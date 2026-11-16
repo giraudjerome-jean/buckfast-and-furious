@@ -176,6 +176,8 @@
     const f = FORMATS[formatName] || FORMATS.story;
     const lang = LABELS[data.lang] ? data.lang : "en";
     const L = { f, lang, labels: LABELS[lang] };
+    // "black" swaps the brand colours: black background, orange type.
+    L.colors = data.theme === "black" ? { bg: COLORS.ink, ink: COLORS.bg } : { bg: COLORS.bg, ink: COLORS.ink };
 
     const tall = f.h > 1500;
     const top = f.safeTop + (tall ? 10 : 64);
@@ -213,9 +215,9 @@
     const ease = x => 1 - Math.pow(1 - x, 3);
 
     ctx.save();
-    ctx.fillStyle = COLORS.bg;
+    ctx.fillStyle = L.colors.bg;
     ctx.fillRect(0, 0, f.w, f.h);
-    ctx.fillStyle = COLORS.ink;
+    ctx.fillStyle = L.colors.ink;
     ctx.textBaseline = "alphabetic";
 
     // Header: rule + brand / category · date
@@ -263,7 +265,7 @@
       const fy = L.footer.y + (1 - pf) * 40;
       ctx.globalAlpha = pf;
       ctx.fillRect(fx, fy, fw, L.footer.h);
-      ctx.fillStyle = COLORS.bg;
+      ctx.fillStyle = L.colors.bg;
       const inner = 44;
       setFont(ctx, 700, 26, 0.06);
       ctx.fillText(L.labels.readMore.toUpperCase(), fx + inner, fy + inner + 22);
@@ -344,7 +346,7 @@
     ctx.beginPath();
     ctx.rect(0, 0, f.w, visible);
     ctx.clip();
-    ctx.fillStyle = COLORS.ink;
+    ctx.fillStyle = L.colors.ink;
     ctx.fillRect(0, 0, f.w, f.h);
 
     const word = (L.data.category || "BUCKFAST").toUpperCase();
@@ -357,7 +359,7 @@
     const blockH = (lines.length - 1) * lh + size * 0.74;
     const top = f.safeTop + (f.h - f.safeTop - f.safeBottom - blockH) / 2;
 
-    ctx.fillStyle = COLORS.bg;
+    ctx.fillStyle = L.colors.bg;
     setFont(ctx, 700, 26, 0.06);
     ctx.globalAlpha = easeOut(prog(t, T.intro, 0.4));
     ctx.textAlign = "left";
@@ -397,7 +399,7 @@
     ctx.save();
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
-    ctx.fillStyle = COLORS.bg;
+    ctx.fillStyle = L.colors.bg;
     ctx.fillRect(0, 0, f.w, f.h);
 
     // Slow push-in during the main scene.
@@ -406,7 +408,7 @@
     ctx.translate(f.w / 2, f.h / 2);
     ctx.scale(zoom, zoom);
     ctx.translate(-f.w / 2, -f.h / 2);
-    ctx.fillStyle = COLORS.ink;
+    ctx.fillStyle = L.colors.ink;
 
     // Header
     const rule = easeInOut(prog(t, T.header, 0.5));
@@ -452,7 +454,7 @@
       ctx.beginPath();
       ctx.rect(w.x - padX, boxTop, boxW, boxH);
       ctx.clip();
-      ctx.fillStyle = COLORS.bg;
+      ctx.fillStyle = L.colors.bg;
       ctx.fillText(w.text, w.x, base);
       ctx.restore();
     }
@@ -479,7 +481,7 @@
       ctx.beginPath();
       ctx.rect(fx, fy, fw, fh);
       ctx.clip();
-      ctx.fillStyle = COLORS.bg;
+      ctx.fillStyle = L.colors.bg;
       const pr = easeOut(prog(t, T.footer + 0.2, 0.35));
       ctx.globalAlpha = pr;
       setFont(ctx, 700, 26, 0.06);
@@ -507,9 +509,9 @@
       const sy = v => f.h / 2 + (v - f.h / 2) * zoom;
       const x0 = lerp(sx(fx), 0, po), y0 = lerp(sy(fy), 0, po);
       const x1 = lerp(sx(fx + fw), f.w, po), y1 = lerp(sy(fy + fh), f.h, po);
-      ctx.fillStyle = COLORS.ink;
+      ctx.fillStyle = L.colors.ink;
       ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-      ctx.fillStyle = COLORS.bg;
+      ctx.fillStyle = L.colors.bg;
       const endSize = siteSize * 1.12;
       const sz = lerp(siteSize * zoom, endSize, po);
       setFont(ctx, 700, sz, -0.03);

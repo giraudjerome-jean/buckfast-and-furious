@@ -197,7 +197,7 @@ async function audioInput(track, footerAt) {
   };
 }
 
-async function renderReel(page, story, basename, track) {
+async function renderReel(page, story, basename, track, theme) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const video = path.join(OUT_DIR, `${basename}.mp4`);
   const cover = path.join(OUT_DIR, `${basename}.jpg`);
@@ -207,7 +207,7 @@ async function renderReel(page, story, basename, track) {
     window.__reelLayout = await BFStory.renderStill(window.__reelCanvas, data, "reel", "");
     // Moment the footer label starts to appear.
     return BFStory.motionTimes(window.__reelLayout).footer;
-  }, { headline: story.headline, source: story.source, date: story.date, category: story.category, lang: "en" });
+  }, { headline: story.headline, source: story.source, date: story.date, category: story.category, lang: "en", theme });
 
   const frame = time => page.evaluate(t => {
     const canvas = window.__reelCanvas;
@@ -415,7 +415,9 @@ async function main() {
     for (const story of queue) {
       const basename = `${new Date(story.pubDate).toISOString().slice(0, 10)}-${slug(story.headline)}`;
       const track = pickTrack(state.lastTrack);
-      const media = await renderReel(page, story, basename, track);
+      // Colours alternate from one post to the next: orange, then black.
+      const theme = state.posts.length % 2 === 0 ? "orange" : "black";
+      const media = await renderReel(page, story, basename, track, theme);
       console.log(`Rendered ${path.relative(ROOT, media.video)} — “${story.headline}”${track ? ` — music: ${track}` : ""}`);
       if (MODE === "dry-run") {
         console.log(`Caption:\n${caption(story)}`);
@@ -424,7 +426,7 @@ async function main() {
       const music = track ? null : await pickMusic(state.posts.length);
       if (music) console.log(`Music: ${music.title || music.id}${music.artist ? ` — ${music.artist}` : ""}`);
       const result = await publishReel(story, media.video, music);
-      const post = { key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: track || (music ? music.id : null), at: new Date().toISOString() };
+      const post = { key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: track || (music ? music.id : null), theme, at: new Date().toISOString() };
       state.posts.push(post);
       if (track) state.lastTrack = track;
       if (!state.seen.includes(story.key)) state.seen.push(story.key);

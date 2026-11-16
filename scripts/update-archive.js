@@ -8,6 +8,11 @@ const NEAR_PLACE = /\b(?:near|at|in|around|through)\s+buckfast\b/i;
 const PLACE_NAMES = /\bbuckfastleigh\b/i;
 const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
+// Not about the drink: abbey events, people or places named Buckfast, shop
+// pages and topic/search index pages.
+const OFF_TOPIC = /\b(?:widdecombe|requiem|choir|choral|realtors?|operation buckfast|latest news|search \/ x)\b|\bpage \d+\s*$/i;
+const ABBEY_ONLY = /\babbey\b/i;
+const ABBEY_DRINK = /\b(?:tonic|wine|drink|alcohol|profits?|sales|income|record|crime|bottles?|bad image)\b/i;
 const WEATHER_PAGE = /\b(?:weather|forecast)\b/i;
 const BEE_CONTEXT = /\b(?:adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
@@ -184,7 +189,7 @@ function isRelevant(item) {
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.
   if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
-  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || WEATHER_PAGE.test(title) || isRoutineAbbeyStory(title) || looksLikeRecipe(title)) {
+  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || WEATHER_PAGE.test(title) || OFF_TOPIC.test(title) || (ABBEY_ONLY.test(title) && !ABBEY_DRINK.test(title)) || isRoutineAbbeyStory(title) || looksLikeRecipe(title)) {
     return false;
   }
 

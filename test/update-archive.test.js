@@ -156,3 +156,14 @@ test("filters cocktail recipes and weather pages", () => {
   }
   assert.ok(isRelevant({ title: "Buckfast-fuelled night out was a recipe for disaster, court hears", description: "" }));
 });
+
+test("drops abbey events and pages unrelated to the drink", () => {
+  const { isRelevant } = require("../scripts/update-archive.js");
+  for (const title of [
+    "Police search Buckfast Abbey ahead of Ann Widdecombe's funeral - Devon Live",
+    "Buckfast Abbey Choir to celebrate Venice’s golden age - Great British Life",
+    "102 Buckfast Ct, Thomasville, GA 31792 | Harry Norman REALTORS",
+    "#Buckfast - Search / X"
+  ]) assert.ok(!isRelevant({ title, description: "" }), title);
+  assert.ok(isRelevant({ title: "Buckfast Abbey in bid to shake off bad image as it announces record profits - The National", description: "" }));
+});

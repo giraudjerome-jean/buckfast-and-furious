@@ -290,6 +290,243 @@
     return t;
   }
 
+
+  // ------------------------------------------------------------------
+  // Motion version (Reels): intro on the category, word-by-word headline,
+  // highlighted keyword, typed source, footer label that becomes the end
+  // card. Starts and ends on black so the Reel loops cleanly.
+
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const prog = (t, start, dur) => clamp01((t - start) / dur);
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+  const easeInOut = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const easeBack = x => { const c = 1.15; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  function wordsOf(ctx, L) {
+    if (L._words) return L._words;
+    setFont(ctx, 700, L.title.size, -0.03);
+    const space = ctx.measureText(" ").width;
+    const words = [];
+    L.title.lines.forEach((line, li) => {
+      let x = L.title.x;
+      line.split(" ").forEach(text => {
+        const width = ctx.measureText(text).width;
+        words.push({ text, line: li, x, width });
+        x += width + space;
+      });
+    });
+    L._words = words;
+    L._highlight = words.findIndex(w => /buckfast/i.test(w.text));
+    return words;
+  }
+
+  function motionTimes(L) {
+    const count = L.title.lines.join(" ").split(" ").length;
+    const T = { intro: 0.1, wipe: 1.0, wipeDur: 0.36, header: 1.25, words: 1.45, stagger: 0.055, wordDur: 0.5 };
+    T.wordsEnd = T.words + (count - 1) * T.stagger + T.wordDur;
+    T.highlight = T.wordsEnd + 0.05;
+    T.source = T.wordsEnd;
+    T.footer = T.highlight + 0.3;
+    T.outro = 6.8;
+    T.outroDur = 0.55;
+    T.duration = 8;
+    T.cover = 5.8;
+    return T;
+  }
+
+  function drawIntro(ctx, L, t, T) {
+    const { f } = L;
+    const wipe = easeInOut(prog(t, T.wipe, T.wipeDur));
+    const visible = f.h * (1 - wipe);
+    if (visible <= 0) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, f.w, visible);
+    ctx.clip();
+    ctx.fillStyle = COLORS.ink;
+    ctx.fillRect(0, 0, f.w, f.h);
+
+    const word = (L.data.category || "BUCKFAST").toUpperCase();
+    const lines = word.split(" ");
+    const width = f.w - f.pad - f.padRight;
+    setFont(ctx, 900, 100, -0.04);
+    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+    const size = Math.min(330, Math.floor(100 * width / widest));
+    const lh = size * 0.86;
+    const blockH = (lines.length - 1) * lh + size * 0.74;
+    const top = f.safeTop + (f.h - f.safeTop - f.safeBottom - blockH) / 2;
+
+    ctx.fillStyle = COLORS.bg;
+    setFont(ctx, 700, 26, 0.06);
+    ctx.globalAlpha = easeOut(prog(t, T.intro, 0.4));
+    ctx.textAlign = "left";
+    ctx.fillText("BUCKFAST & FURIOUS", f.pad, top - 60);
+    ctx.textAlign = "right";
+    ctx.fillText(L.data.date, f.w - f.padRight, top - 60);
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+
+    setFont(ctx, 900, size, -0.04);
+    let index = 0;
+    lines.forEach((line, li) => {
+      const base = top + size * 0.74 + li * lh;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, base - size * 0.8, f.w, size * 0.86);
+      ctx.clip();
+      for (let i = 0; i < line.length; i += 1) {
+        const x = f.pad + ctx.measureText(line.slice(0, i)).width;
+        const p = easeOut(prog(t, T.intro + 0.08 + index * 0.028, 0.42));
+        ctx.fillText(line[i], x, base + (1 - p) * size * 0.9);
+        index += 1;
+      }
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
+  function drawMotion(ctx, L, t) {
+    const { f } = L;
+    const T = motionTimes(L);
+    const words = wordsOf(ctx, L);
+    const size = L.title.size;
+    const lh = size * 0.94;
+    const firstBase = L.title.y + size * 0.78;
+
+    ctx.save();
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left";
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0, 0, f.w, f.h);
+
+    // Slow push-in during the main scene.
+    const zoom = 1 + 0.03 * easeInOut(prog(t, T.header, T.outro - T.header));
+    ctx.save();
+    ctx.translate(f.w / 2, f.h / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-f.w / 2, -f.h / 2);
+    ctx.fillStyle = COLORS.ink;
+
+    // Header
+    const rule = easeInOut(prog(t, T.header, 0.5));
+    ctx.fillRect(f.pad, L.header.rule, (f.w - f.pad - f.padRight) * rule, 4);
+    const ph = easeOut(prog(t, T.header + 0.15, 0.4));
+    if (ph > 0) {
+      ctx.globalAlpha = ph;
+      setFont(ctx, 700, 26, 0.06);
+      const dy = (1 - ph) * 16;
+      ctx.fillText("BUCKFAST & FURIOUS", f.pad, L.header.y + 52 + dy);
+      ctx.textAlign = "right";
+      ctx.fillText([L.data.category, L.data.date].filter(Boolean).join("  ·  "), f.w - f.padRight, L.header.y + 52 + dy);
+      ctx.textAlign = "left";
+      ctx.globalAlpha = 1;
+    }
+
+    // Headline, word by word
+    setFont(ctx, 700, size, -0.03);
+    words.forEach((w, i) => {
+      const p = prog(t, T.words + i * T.stagger, T.wordDur);
+      if (p <= 0) return;
+      const base = firstBase + w.line * lh;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, base - size * 1.05, f.w, size * 1.3);
+      ctx.clip();
+      ctx.fillText(w.text, w.x, base + (1 - easeBack(p)) * size);
+      ctx.restore();
+    });
+
+    // Keyword highlight: a black block sweeps behind "Buckfast"
+    const hi = L._highlight;
+    const hp = easeInOut(prog(t, T.highlight, 0.42));
+    if (hi >= 0 && hp > 0) {
+      const w = words[hi];
+      const base = firstBase + w.line * lh;
+      const padX = size * 0.08;
+      const boxTop = base - size * 0.8;
+      const boxH = size * 0.96;
+      const boxW = (w.width + padX * 2) * hp;
+      ctx.fillRect(w.x - padX, boxTop, boxW, boxH);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(w.x - padX, boxTop, boxW, boxH);
+      ctx.clip();
+      ctx.fillStyle = COLORS.bg;
+      ctx.fillText(w.text, w.x, base);
+      ctx.restore();
+    }
+
+    // Source, typed
+    if (L.data.source) {
+      const text = `${L.labels.source.toUpperCase()} — ${L.data.source}`;
+      const shown = Math.floor(prog(t, T.source, text.length * 0.022) * text.length);
+      if (shown > 0) {
+        setFont(ctx, 700, 30, 0.04);
+        ctx.fillText(text.slice(0, shown), f.pad, L.source.y);
+      }
+    }
+
+    // Footer label grows from its baseline, then the address cascades in
+    const fx = f.pad, fw = f.w - f.pad - f.padRight, fy = L.footer.y, fh = L.footer.h;
+    const pf = easeOut(prog(t, T.footer, 0.45));
+    const inner = 44;
+    setFont(ctx, 700, 100, -0.03);
+    const siteSize = Math.min(110, Math.floor(100 * (fw - inner * 2) / ctx.measureText(L.data.site).width));
+    if (pf > 0) {
+      ctx.fillRect(fx, fy + fh * (1 - pf), fw, fh * pf);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(fx, fy, fw, fh);
+      ctx.clip();
+      ctx.fillStyle = COLORS.bg;
+      const pr = easeOut(prog(t, T.footer + 0.2, 0.35));
+      ctx.globalAlpha = pr;
+      setFont(ctx, 700, 26, 0.06);
+      ctx.fillText(L.labels.readMore.toUpperCase(), fx + inner, fy + inner + 22 + (1 - pr) * 12);
+      ctx.globalAlpha = 1;
+      setFont(ctx, 700, siteSize, -0.03);
+      const site = L.data.site;
+      const base = fy + fh - inner - 4;
+      for (let i = 0; i < site.length; i += 1) {
+        const p = easeOut(prog(t, T.footer + 0.28 + i * 0.016, 0.3));
+        if (p <= 0) continue;
+        const x = fx + inner + ctx.measureText(site.slice(0, i)).width;
+        ctx.globalAlpha = p;
+        ctx.fillText(site[i], x, base + (1 - p) * siteSize * 0.5);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+    ctx.restore(); // camera
+
+    // Outro: the black label opens to the whole frame and becomes the end card
+    const po = easeInOut(prog(t, T.outro, T.outroDur));
+    if (po > 0) {
+      const sx = v => f.w / 2 + (v - f.w / 2) * zoom;
+      const sy = v => f.h / 2 + (v - f.h / 2) * zoom;
+      const x0 = lerp(sx(fx), 0, po), y0 = lerp(sy(fy), 0, po);
+      const x1 = lerp(sx(fx + fw), f.w, po), y1 = lerp(sy(fy + fh), f.h, po);
+      ctx.fillStyle = COLORS.ink;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.fillStyle = COLORS.bg;
+      const endSize = siteSize * 1.12;
+      const sz = lerp(siteSize * zoom, endSize, po);
+      setFont(ctx, 700, sz, -0.03);
+      const tw = ctx.measureText(L.data.site).width;
+      const textX = lerp(sx(fx + inner), (f.w - tw) / 2, po);
+      const textY = lerp(sy(fy + fh - inner - 4), f.h / 2 + endSize * 0.3, po);
+      ctx.fillText(L.data.site, textX, textY);
+      setFont(ctx, 700, 26, 0.06);
+      const label = L.labels.readMore.toUpperCase();
+      const lw = ctx.measureText(label).width;
+      ctx.fillText(label, lerp(sx(fx + inner), (f.w - lw) / 2, po), lerp(sy(fy + inner + 22), f.h / 2 - endSize * 0.75, po));
+    }
+
+    drawIntro(ctx, L, t, T);
+    ctx.restore();
+  }
+
   async function renderStill(canvas, data, formatName, baseUrl) {
     await loadFonts(baseUrl);
     const f = FORMATS[formatName] || FORMATS.story;
@@ -301,5 +538,5 @@
     return L;
   }
 
-  global.BFStory = { FORMATS, loadFonts, smartTypography, layout, draw, timeline, renderStill };
+  global.BFStory = { FORMATS, loadFonts, smartTypography, layout, draw, timeline, drawMotion, motionTimes, renderStill };
 })(window);

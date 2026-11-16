@@ -43,8 +43,8 @@ const AUDIO_ID = process.env.IG_AUDIO_ID || "";
 const MUSIC_QUERY = process.env.IG_MUSIC_QUERY || "";
 
 const FPS = 30;
-const DURATION = 7;
-const COVER_AT = 4.5; // seconds: everything is revealed
+const DURATION = 8; // seconds, see BFStory.motionTimes
+const COVER_AT = 5.8; // seconds: everything is revealed
 
 const HASHTAGS = "#buckfast #buckfasttonicwine #buckie #scotland #scottishnews";
 
@@ -203,16 +203,13 @@ async function renderReel(page, story, basename, track) {
   const footerAt = await page.evaluate(async data => {
     window.__reelCanvas = document.createElement("canvas");
     window.__reelLayout = await BFStory.renderStill(window.__reelCanvas, data, "reel", "");
-    // Moment the footer starts to appear: first time its reveal goes above 0.
-    for (let t = 0; t < 7; t += 1 / 30) {
-      if (BFStory.timeline(window.__reelLayout, t).footer > 0) return t;
-    }
-    return 3;
+    // Moment the footer label starts to appear.
+    return BFStory.motionTimes(window.__reelLayout).footer;
   }, { headline: story.headline, source: story.source, date: story.date, category: story.category, lang: "en" });
 
   const frame = time => page.evaluate(t => {
     const canvas = window.__reelCanvas;
-    BFStory.draw(canvas.getContext("2d"), window.__reelLayout, BFStory.timeline(window.__reelLayout, t));
+    BFStory.drawMotion(canvas.getContext("2d"), window.__reelLayout, t);
     return canvas.toDataURL("image/png").split(",")[1];
   }, time);
 

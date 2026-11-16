@@ -12,6 +12,7 @@
 //   auto     publish stories that appeared since the last run (default)
 //   dry-run  render the latest eligible story and check the token, publish nothing
 //   latest   publish the latest eligible story that was never posted
+//   story    publish the Story that failed for the latest Reel
 //
 // State lives in data/instagram-state.json: every story already seen is
 // recorded, so the backlog is never posted and nothing is posted twice.
@@ -334,22 +335,11 @@ async function publishReel(story, video, music) {
   return { id: media.id, permalink: permalink || null };
 }
 
-// The same video also goes out as a Story. Instagram fetches it from the
-// Reel's own CDN address; if that address is not available yet, the file is
-// uploaded again.
-async function publishStory(reelId, video) {
-  let url = null;
-  for (let attempt = 0; attempt < 6 && !url; attempt += 1) {
-    ({ media_url: url = null } = await graph("GET", `/${reelId}`, { fields: "media_url" }).catch(() => ({})));
-    if (!url) await new Promise(resolve => setTimeout(resolve, 5000));
-  }
-  let container;
-  if (url) {
-    container = await graph("POST", `/${IG_USER_ID}/media`, { media_type: "STORIES", video_url: url });
-  } else {
-    container = await graph("POST", `/${IG_USER_ID}/media`, { media_type: "STORIES", upload_type: "resumable" });
-    await uploadVideo(container, video);
-  }
+// The same video also goes out as a Story, uploaded directly like the Reel.
+// (Pointing Instagram at the Reel's own CDN address fails with error 2207076.)
+async function publishStory(video) {
+  const container = await graph("POST", `/${IG_USER_ID}/media`, { media_type: "STORIES", upload_type: "resumable" });
+  await uploadVideo(container, video);
   await waitForContainer(container.id);
   const media = await graph("POST", `/${IG_USER_ID}/media_publish`, { creation_id: container.id });
   return media.id;
@@ -387,6 +377,20 @@ async function main() {
     if (!state.initialized && MODE === "latest") {
       state.initialized = new Date().toISOString();
       state.seen = stories.map(story => story.key);
+    }
+
+    if (MODE === "story") {
+      const post = state.posts[state.posts.length - 1];
+      const story = post && !post.story_id && stories.find(s => s.key === post.key);
+      if (!story) { console.log("No missing Story to publish."); return; }
+      if (TOKEN) await checkAccount();
+      const basename = `${new Date(story.pubDate).toISOString().slice(0, 10)}-${slug(story.headline)}-story`;
+      const media = await renderReel(page, story, basename, post.music && fs.existsSync(path.join(MUSIC_DIR, post.music)) ? post.music : null, post.theme || "orange");
+      post.story_id = await publishStory(media.video);
+      delete post.story_error;
+      saveState(state);
+      console.log(`Published the Story for ${post.permalink}: ${post.story_id}`);
+      return;
     }
 
     let queue;
@@ -435,7 +439,8 @@ async function main() {
 
       if (STORIES) {
         try {
-          post.story_id = await publishStory(result.id, media.video);
+          post.story_id = await publishStory(media.video);
+          delete post.story_error;
           console.log(`Published as a Story too: ${post.story_id}`);
         } catch (error) {
           post.story_error = error.message;

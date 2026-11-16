@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       instagram:
-        description: "Instagram : auto (normal), dry-run (vidéo de test sans publier) ou latest (publie le dernier article)"
+        description: "Instagram : auto (normal), dry-run (vidéo de test sans publier), latest (publie le dernier article) ou story (republie la Story manquée du dernier Reel)"
         type: choice
         default: auto
-        options: [auto, dry-run, latest]
+        options: [auto, dry-run, latest, story]
 
 permissions:
   contents: write

@@ -6,6 +6,12 @@ on:
   push:
     branches: [main] # republie le site après une modification manuelle
   workflow_dispatch:
+    inputs:
+      instagram:
+        description: "Instagram : auto (normal), dry-run (vidéo de test sans publier) ou latest (publie le dernier article)"
+        type: choice
+        default: auto
+        options: [auto, dry-run, latest]
 
 permissions:
   contents: write
@@ -56,12 +62,45 @@ jobs:
 
           node scripts/update-archive.js feed.json archive.json
 
+      # Publishes each new story as a Reel on @buckfast_and_furious.
+      # Skipped when nothing changed; a failure never blocks the site update.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Publish new stories on Instagram
+        continue-on-error: true
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_MODE: ${{ github.event.inputs.instagram || 'auto' }}
+        run: |
+          if [ -z "$IG_ACCESS_TOKEN" ]; then echo "No Instagram token configured."; exit 0; fi
+          if [ "$IG_MODE" = "auto" ] && [ -f data/instagram-state.json ] && git diff --quiet -- archive.json; then
+            echo "No new story."; exit 0
+          fi
+          npm ci
+          npx playwright install --with-deps chromium
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          node scripts/instagram.js
+
+      - name: Keep the rendered video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-reel
+          path: social-out/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Commit changes
         id: commit
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add archive.json
+          if [ -f data/instagram-state.json ]; then git add data/instagram-state.json; fi
           if git diff --staged --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else

@@ -20,7 +20,7 @@ const ROOT = path.join(__dirname, "..");
 // Development files that are not part of the public site.
 const EXCLUDED = new Set([
   ".git", ".github", ".gitignore", "node_modules", "_site", "test", "scripts",
-  "feeds", "feed.json", "package.json", "package-lock.json"
+  "feeds", "feed.json", "package.json", "package-lock.json", "music", "social-out"
 ]);
 
 const RELATED_COUNT = 6;

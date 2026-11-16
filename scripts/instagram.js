@@ -23,6 +23,7 @@ const { spawn } = require("node:child_process");
 
 const ROOT = path.join(__dirname, "..");
 const STATE_PATH = path.join(ROOT, "data", "instagram-state.json");
+const MUSIC_DIR = path.join(ROOT, "music");
 const OUT_DIR = path.join(ROOT, "social-out");
 
 const GRAPH = `https://graph.facebook.com/${process.env.IG_GRAPH_VERSION || "v27.0"}`;
@@ -32,7 +33,10 @@ const MODE = process.env.IG_MODE || "auto";
 const MAX_PER_RUN = Number(process.env.IG_MAX_PER_RUN || 1);
 const MAX_PER_DAY = Number(process.env.IG_MAX_PER_DAY || 3);
 const MAX_AGE_HOURS = Number(process.env.IG_MAX_AGE_HOURS || 72);
-// Music from Instagram's own catalogue (licensed for third-party use):
+// Each Reel gets a random track from music/ (never the same twice in a row).
+// Short jingles start when the site address appears; longer tracks play from
+// the start and fade out at the end of the video.
+// Alternatively, music from Instagram's own catalogue (licensed for third-party use):
 // either one fixed track (IG_AUDIO_ID) or a search keyword (IG_MUSIC_QUERY)
 // whose top results are used in rotation.
 const AUDIO_ID = process.env.IG_AUDIO_ID || "";
@@ -159,14 +163,51 @@ function run(cmd, args, input) {
   });
 }
 
-async function renderReel(page, story, basename) {
+function probeDuration(file) {
+  return new Promise(resolve => {
+    const child = spawn("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]);
+    let out = "";
+    child.stdout.on("data", chunk => { out += chunk; });
+    child.on("close", () => resolve(Number(out.trim()) || 0));
+    child.on("error", () => resolve(0));
+  });
+}
+
+function pickTrack(previous) {
+  if (!fs.existsSync(MUSIC_DIR)) return null;
+  const tracks = fs.readdirSync(MUSIC_DIR).filter(name => /\.(mp3|m4a|wav|aac)$/i.test(name)).sort();
+  if (!tracks.length) return null;
+  const choices = tracks.length > 1 ? tracks.filter(name => name !== previous) : tracks;
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
+async function audioInput(track, footerAt) {
+  if (!track) return { args: ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo"], filter: "[1:a]anull[a]" };
+  const file = path.join(MUSIC_DIR, track);
+  const length = await probeDuration(file);
+  const fadeAt = DURATION - 0.6;
+  // Short jingle: lands on the reveal of the site address (or as late as it still fits).
+  const start = length && length < 5 ? Math.max(0, Math.min(footerAt, DURATION - length - 0.1)) : 0;
+  const delay = Math.round(start * 1000);
+  return {
+    args: ["-i", file],
+    filter: `[1:a]aresample=48000,aformat=channel_layouts=stereo,loudnorm=I=-14:TP=-1.5:LRA=11,adelay=${delay}|${delay},apad,atrim=0:${DURATION},afade=t=out:st=${fadeAt}:d=0.6[a]`
+  };
+}
+
+async function renderReel(page, story, basename, track) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const video = path.join(OUT_DIR, `${basename}.mp4`);
   const cover = path.join(OUT_DIR, `${basename}.jpg`);
 
-  await page.evaluate(async data => {
+  const footerAt = await page.evaluate(async data => {
     window.__reelCanvas = document.createElement("canvas");
     window.__reelLayout = await BFStory.renderStill(window.__reelCanvas, data, "reel", "");
+    // Moment the footer starts to appear: first time its reveal goes above 0.
+    for (let t = 0; t < 7; t += 1 / 30) {
+      if (BFStory.timeline(window.__reelLayout, t).footer > 0) return t;
+    }
+    return 3;
   }, { headline: story.headline, source: story.source, date: story.date, category: story.category, lang: "en" });
 
   const frame = time => page.evaluate(t => {
@@ -179,12 +220,14 @@ async function renderReel(page, story, basename) {
   for (let i = 0; i < FPS * DURATION; i += 1) frames.push(Buffer.from(await frame(i / FPS), "base64"));
   fs.writeFileSync(cover.replace(/\.jpg$/, ".png"), Buffer.from(await frame(COVER_AT), "base64"));
 
+  const audio = await audioInput(track, footerAt);
   await run("ffmpeg", [
     "-v", "error", "-y",
     "-f", "image2pipe", "-framerate", String(FPS), "-i", "-",
-    "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
-    "-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
-    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", video
+    ...audio.args,
+    "-filter_complex", audio.filter, "-map", "0:v", "-map", "[a]",
+    "-t", String(DURATION), "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+    "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", video
   ], stdin => { for (const buffer of frames) stdin.write(buffer); stdin.end(); });
   await run("ffmpeg", ["-v", "error", "-y", "-i", cover.replace(/\.jpg$/, ".png"), "-q:v", "2", cover]);
   fs.rmSync(cover.replace(/\.jpg$/, ".png"));
@@ -338,16 +381,18 @@ async function main() {
 
     for (const story of queue) {
       const basename = `${new Date(story.pubDate).toISOString().slice(0, 10)}-${slug(story.headline)}`;
-      const media = await renderReel(page, story, basename);
-      console.log(`Rendered ${path.relative(ROOT, media.video)} — “${story.headline}”`);
+      const track = pickTrack(state.lastTrack);
+      const media = await renderReel(page, story, basename, track);
+      console.log(`Rendered ${path.relative(ROOT, media.video)} — “${story.headline}”${track ? ` — music: ${track}` : ""}`);
       if (MODE === "dry-run") {
         console.log(`Caption:\n${caption(story)}`);
         continue;
       }
-      const music = await pickMusic(state.posts.length);
+      const music = track ? null : await pickMusic(state.posts.length);
       if (music) console.log(`Music: ${music.title || music.id}${music.artist ? ` — ${music.artist}` : ""}`);
       const result = await publishReel(story, media.video, music);
-      state.posts.push({ key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: music ? music.id : null, at: new Date().toISOString() });
+      state.posts.push({ key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: track || (music ? music.id : null), at: new Date().toISOString() });
+      if (track) state.lastTrack = track;
       if (!state.seen.includes(story.key)) state.seen.push(story.key);
       saveState(state);
       console.log(`Published on Instagram: ${result.permalink || result.id}`);

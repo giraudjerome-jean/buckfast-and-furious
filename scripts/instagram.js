@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
-// Publishes new Buckfast stories on Instagram as Reels.
+// Publishes new Buckfast stories on Instagram as Reels, and as Stories.
 //
 // The visual is drawn by story-render.js inside the real site (index.html run
 // in headless Chromium), so the headline, source, date and category are
@@ -41,6 +41,8 @@ const MAX_AGE_HOURS = Number(process.env.IG_MAX_AGE_HOURS || 72);
 // whose top results are used in rotation.
 const AUDIO_ID = process.env.IG_AUDIO_ID || "";
 const MUSIC_QUERY = process.env.IG_MUSIC_QUERY || "";
+// Every Reel is also published as a Story unless IG_STORIES is "false".
+const STORIES = process.env.IG_STORIES !== "false";
 
 const FPS = 30;
 const DURATION = 8; // seconds, see BFStory.motionTimes
@@ -302,8 +304,7 @@ async function createReelContainer(story, music) {
   return graph("POST", `/${IG_USER_ID}/media`, params);
 }
 
-async function publishReel(story, video, music) {
-  const container = await createReelContainer(story, music);
+async function uploadVideo(container, video) {
   const uploadUrl = container.uri || `https://rupload.facebook.com/ig-api-upload/${GRAPH.split("/").pop()}/${container.id}`;
   const file = fs.readFileSync(video);
   const upload = await fetch(uploadUrl, {
@@ -312,18 +313,46 @@ async function publishReel(story, video, music) {
     body: file
   });
   if (!upload.ok) throw new Error(`Video upload failed: ${upload.status} ${await upload.text()}`);
+}
 
+async function waitForContainer(id) {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    const { status_code: status, status: detail } = await graph("GET", `/${container.id}`, { fields: "status_code,status" });
-    if (status === "FINISHED") break;
+    const { status_code: status, status: detail } = await graph("GET", `/${id}`, { fields: "status_code,status" });
+    if (status === "FINISHED") return;
     if (status === "ERROR" || status === "EXPIRED") throw new Error(`Instagram could not process the video: ${detail || status}`);
-    if (attempt === 59) throw new Error("Instagram is still processing the video after 5 minutes");
     await new Promise(resolve => setTimeout(resolve, 5000));
   }
+  throw new Error("Instagram is still processing the video after 5 minutes");
+}
 
+async function publishReel(story, video, music) {
+  const container = await createReelContainer(story, music);
+  await uploadVideo(container, video);
+  await waitForContainer(container.id);
   const media = await graph("POST", `/${IG_USER_ID}/media_publish`, { creation_id: container.id });
   const { permalink } = await graph("GET", `/${media.id}`, { fields: "permalink" }).catch(() => ({}));
   return { id: media.id, permalink: permalink || null };
+}
+
+// The same video also goes out as a Story. Instagram fetches it from the
+// Reel's own CDN address; if that address is not available yet, the file is
+// uploaded again.
+async function publishStory(reelId, video) {
+  let url = null;
+  for (let attempt = 0; attempt < 6 && !url; attempt += 1) {
+    ({ media_url: url = null } = await graph("GET", `/${reelId}`, { fields: "media_url" }).catch(() => ({})));
+    if (!url) await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  let container;
+  if (url) {
+    container = await graph("POST", `/${IG_USER_ID}/media`, { media_type: "STORIES", video_url: url });
+  } else {
+    container = await graph("POST", `/${IG_USER_ID}/media`, { media_type: "STORIES", upload_type: "resumable" });
+    await uploadVideo(container, video);
+  }
+  await waitForContainer(container.id);
+  const media = await graph("POST", `/${IG_USER_ID}/media_publish`, { creation_id: container.id });
+  return media.id;
 }
 
 // ---------------------------------------------------------------- main
@@ -395,11 +424,23 @@ async function main() {
       const music = track ? null : await pickMusic(state.posts.length);
       if (music) console.log(`Music: ${music.title || music.id}${music.artist ? ` — ${music.artist}` : ""}`);
       const result = await publishReel(story, media.video, music);
-      state.posts.push({ key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: track || (music ? music.id : null), at: new Date().toISOString() });
+      const post = { key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: track || (music ? music.id : null), at: new Date().toISOString() };
+      state.posts.push(post);
       if (track) state.lastTrack = track;
       if (!state.seen.includes(story.key)) state.seen.push(story.key);
       saveState(state);
       console.log(`Published on Instagram: ${result.permalink || result.id}`);
+
+      if (STORIES) {
+        try {
+          post.story_id = await publishStory(result.id, media.video);
+          console.log(`Published as a Story too: ${post.story_id}`);
+        } catch (error) {
+          post.story_error = error.message;
+          console.warn(`The Story could not be published: ${error.message}`);
+        }
+        saveState(state);
+      }
     }
   } finally {
     await browser.close();

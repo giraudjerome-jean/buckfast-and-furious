@@ -24,6 +24,8 @@ const EXCLUDED = new Set([
 ]);
 
 const RELATED_COUNT = 6;
+const INSTAGRAM_URL = "https://www.instagram.com/buckfast_and_furious/";
+const INSTAGRAM_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>';
 
 function escapeHtml(value) {
   return String(value == null ? "" : value)
@@ -145,6 +147,7 @@ ${jsonLd ? `  <script type="application/ld+json">${JSON.stringify(jsonLd).replac
     <header class="topbar">
       <a class="brand" href="/">${SITE_NAME}</a>
       <nav class="topnav"><a class="nav-btn active" href="/">All incidents</a></nav>
+      <a class="ig-follow" href="${INSTAGRAM_URL}" target="_blank" rel="noopener">${INSTAGRAM_ICON}<span>Follow on Instagram</span></a>
     </header>
 ${body}
     <footer class="footer">
@@ -213,6 +216,7 @@ function incidentPage(item, items) {
           <p class="entry-credit">Originally reported by ${escapeHtml(item.source)}.</p>
           <a class="entry-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener">Read the original article</a>
           <a class="entry-link entry-back" href="/">All Buckfast incidents</a>
+          <a class="entry-link entry-back" href="${INSTAGRAM_URL}" target="_blank" rel="noopener">Every new story as a Reel: follow @buckfast_and_furious</a>
         </div>
       </article>
     </section>

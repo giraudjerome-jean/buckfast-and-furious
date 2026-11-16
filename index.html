@@ -111,7 +111,7 @@
 
     .topbar{
       display:grid;
-      grid-template-columns:auto 1fr;
+      grid-template-columns:auto 1fr auto;
       gap:18px;
       align-items:center;
       border-bottom:1px solid var(--line-strong);
@@ -153,6 +153,32 @@
     .lang-btn.active{
       color:var(--ink);
       border-color:var(--ink);
+    }
+
+    /* Link to the Instagram account, in the header of every page. */
+    .ig-follow{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      font-size:12px;
+      line-height:1;
+      font-weight:700;
+      color:var(--ink);
+      text-decoration:none;
+      border:1px solid var(--line-strong);
+      padding:7px 10px 6px;
+      white-space:nowrap;
+      transition:background-color .15s ease, color .15s ease;
+    }
+
+    .ig-follow:hover,
+    .ig-follow:focus-visible{
+      background:var(--ink);
+      color:var(--bg);
+    }
+
+    .ig-follow svg{
+      flex:0 0 auto;
     }
 
     .hero{
@@ -489,6 +515,10 @@
         justify-content:flex-start;
       }
 
+      .ig-follow{
+        justify-self:start;
+      }
+
       .entry{
         grid-template-columns:1fr;
         gap:10px;
@@ -526,6 +556,7 @@
     <header class="topbar">
       <div class="brand">Buckfast and Furious</div>
       <nav class="topnav" id="topnav"></nav>
+      <a class="ig-follow" href="https://www.instagram.com/buckfast_and_furious/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg><span id="ig-follow-label">Follow on Instagram</span></a>
     </header>
 
     <section class="hero">
@@ -624,6 +655,7 @@
         aboutTitle: "About",
         aboutText: "Buckfast and Furious collects and indexes daily news items involving Buckfast. Each entry includes a short summary, a short excerpt and a direct link to the original article.",
         share: "Share on Instagram",
+        followInstagram: "Follow on Instagram",
         download: "Download PNG",
         sharePreparing: "Preparing the PNG…",
         shareReady: "Ready — tap Share on Instagram.",
@@ -661,6 +693,7 @@
         aboutTitle: "À propos",
         aboutText: "Buckfast and Furious collecte et indexe chaque jour des articles liés à Buckfast. Chaque entrée comprend un court résumé, un court extrait et un lien direct vers l’article d’origine.",
         share: "Partager sur Instagram",
+        followInstagram: "Suivre sur Instagram",
         download: "Télécharger le PNG",
         sharePreparing: "Préparation du PNG…",
         shareReady: "Prêt — appuie sur Partager sur Instagram.",
@@ -983,6 +1016,7 @@
       document.getElementById("about-title").textContent = t("aboutTitle");
       document.getElementById("about-text").textContent = t("aboutText");
       document.getElementById("share-label").textContent = t("share");
+      document.getElementById("ig-follow-label").textContent = t("followInstagram");
       btnDownload.textContent = t("download");
       btnClose.textContent = t("close");
     }

@@ -1482,9 +1482,10 @@
       refreshFromFeeds(archive);
     }
 
-    function updateCount() {
+    // The counter shows exactly the number of stories listed on screen
+    // (after hiding, de-duplication and the active category filter).
+    function updateCount(total) {
       const box = document.getElementById("hero-count");
-      const total = allEntries.length;
       box.hidden = total === 0;
       document.getElementById("hero-count-number").textContent =
         total.toLocaleString(UI[currentLang].locale);
@@ -1493,7 +1494,6 @@
     }
 
     function render(items) {
-      updateCount();
       feed.innerHTML = "";
 
       let visibleItems = items;
@@ -1501,6 +1501,7 @@
       if (activeCategory !== "All") {
         visibleItems = items.filter(item => item.category === activeCategory);
       }
+      updateCount(visibleItems.length);
 
       if (!visibleItems.length) {
         feed.innerHTML = `<div class="empty">${t("noIncidents")}</div>`;

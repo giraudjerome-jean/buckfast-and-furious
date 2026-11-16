@@ -123,3 +123,12 @@ test("supports publisher names before or after the headline", () => {
     publisher: "Falkirk Herald"
   });
 });
+
+test("drops recipes posted on social media", () => {
+  const { isRelevant, looksLikeRecipe } = require("../scripts/update-archive.js");
+  const recipe = "Buckfast Ham 1.7kg Ham 1 bottle of Buckfast 100 g sugar A sprinkle of sea salt A shake ... - Instagram";
+  assert.ok(looksLikeRecipe(recipe));
+  assert.equal(isRelevant({ title: recipe, link: "https://www.instagram.com/p/x" }), false);
+  assert.ok(!looksLikeRecipe("Cocktail of the week: Cafe Cùil’s Buckfast bloody Maìri – recipe | The good mixer - The Guardian"));
+  assert.ok(!looksLikeRecipe("Sales of Buckfast fall by over £3 million after 'punitive' tax increase - The Herald"));
+});

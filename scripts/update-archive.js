@@ -14,6 +14,10 @@ const BUCKFAST_ABBEY = /\b(?:buckfast abbey|abbaye de buckfast)\b/i;
 const ABBEY_ROUTINE_CONTEXT = /\b(?:abbots?|choirs?|choral|concerts?|recitals?|requiem|liturgy|liturgical|mass|pilgrimages?|retreats?|guided tours?|open days?|organist|organ recital|worship|prayer|monastic|heritage|exhibitions?|festivals?|tourism|tourist|visitor centre|gardens?|gift shop|funeral|funerals|mourners?|chorale|chœur|choeur|concerts?|récital|recital|messe|pèlerinage|pelerinage|retraite|visites? guidées?|visites? guidees?|orgue|culte|prière|priere|monastique|patrimoine|expositions?|tourisme|touristique|jardins?|funérailles|funerailles)\b/i;
 const ABBEY_DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottles?|buckie|bucky|sales?|brand|production|bottling|distribution|licensing|exports?|revenue|profits?)\b/i;
 const ABBEY_INCIDENT_CONTEXT = /\b(?:police|cops?|officers?|search(?:ed|es|ing)?|investigat(?:e|ed|es|ing|ion)|arrests?|arrested|charged|attacks?|assaults?|fires?|blaze|thefts?|stolen|burglar(?:y|ies)|break[- ]ins?|missing|threats?|weapons?|emergency|incidents?|scandals?|vandalis(?:m|ed)|vandaliz(?:e|ed|es|ing)|injured|wounded|crimes?|court|crash|collision)\b/i;
+// Recipes posted on social media ("1.7kg ham, 1 bottle of Buckfast, 100 g
+// sugar…"): two quantities with a unit, or recipe vocabulary, in the headline.
+const RECIPE_QUANTITY = /\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|ml|cl|l|litres?|liters?|tbsp|tsp|oz|lbs?|cups?)\b/gi;
+const RECIPE_WORDS = /\b(?:ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of)\b/i;
 const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
 const TOPIC_STOP_WORDS = new Set([
   "about", "after", "again", "before", "being", "could", "court", "from",
@@ -160,6 +164,10 @@ function deduplicate(items) {
   return output;
 }
 
+function looksLikeRecipe(title) {
+  return (title.match(RECIPE_QUANTITY) || []).length >= 2 || RECIPE_WORDS.test(title);
+}
+
 function isRelevant(item) {
   const title = clean(item.title);
   const description = clean(item.description);
@@ -170,7 +178,7 @@ function isRelevant(item) {
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.
   if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
-  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || isRoutineAbbeyStory(title)) {
+  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || isRoutineAbbeyStory(title) || looksLikeRecipe(title)) {
     return false;
   }
 
@@ -208,4 +216,4 @@ function run(feedPath = "feed.json", archivePath = "archive.json") {
 
 if (require.main === module) run(process.argv[2], process.argv[3]);
 
-module.exports = { deduplicate, headlineKey, isNearDuplicateHeadline, isRelevant, isRoutineAbbeyStory, merge, splitPublisherTitle };
+module.exports = { deduplicate, looksLikeRecipe, headlineKey, isNearDuplicateHeadline, isRelevant, isRoutineAbbeyStory, merge, splitPublisherTitle };

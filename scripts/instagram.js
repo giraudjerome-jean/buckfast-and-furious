@@ -32,6 +32,11 @@ const MODE = process.env.IG_MODE || "auto";
 const MAX_PER_RUN = Number(process.env.IG_MAX_PER_RUN || 1);
 const MAX_PER_DAY = Number(process.env.IG_MAX_PER_DAY || 3);
 const MAX_AGE_HOURS = Number(process.env.IG_MAX_AGE_HOURS || 72);
+// Music from Instagram's own catalogue (licensed for third-party use):
+// either one fixed track (IG_AUDIO_ID) or a search keyword (IG_MUSIC_QUERY)
+// whose top results are used in rotation.
+const AUDIO_ID = process.env.IG_AUDIO_ID || "";
+const MUSIC_QUERY = process.env.IG_MUSIC_QUERY || "";
 
 const FPS = 30;
 const DURATION = 7;
@@ -214,14 +219,51 @@ async function checkAccount() {
   return account;
 }
 
-async function publishReel(story, video) {
-  const container = await graph("POST", `/${IG_USER_ID}/media`, {
+async function searchMusic(query) {
+  const result = await graph("GET", "/ig_audio", { audio_type: "music", user_id: IG_USER_ID, search_query: query });
+  return (result.data || result.audio || []).map(track => ({
+    id: String(track.audio_id || track.id || ""),
+    title: track.title || "",
+    artist: track.display_artist || track.artist || "",
+    duration: track.duration_in_ms || null
+  })).filter(track => track.id);
+}
+
+async function pickMusic(rotation) {
+  if (AUDIO_ID) return { id: AUDIO_ID, title: "", artist: "" };
+  if (!MUSIC_QUERY) return null;
+  try {
+    const tracks = (await searchMusic(MUSIC_QUERY)).slice(0, 5);
+    return tracks.length ? tracks[rotation % tracks.length] : null;
+  } catch (error) {
+    console.warn(`Music search failed, the Reel goes out without music: ${error.message}`);
+    return null;
+  }
+}
+
+async function createReelContainer(story, music) {
+  const params = {
     media_type: "REELS",
     upload_type: "resumable",
     caption: caption(story),
     share_to_feed: "true",
     thumb_offset: String(COVER_AT * 1000)
-  });
+  };
+  if (music) {
+    try {
+      return await graph("POST", `/${IG_USER_ID}/media`, {
+        ...params,
+        audio_configuration: JSON.stringify({ audio_id: music.id, audio_volume: 100, video_volume: 1 })
+      });
+    } catch (error) {
+      console.warn(`Instagram refused the music, publishing without it: ${error.message}`);
+    }
+  }
+  return graph("POST", `/${IG_USER_ID}/media`, params);
+}
+
+async function publishReel(story, video, music) {
+  const container = await createReelContainer(story, music);
   const uploadUrl = container.uri || `https://rupload.facebook.com/ig-api-upload/${GRAPH.split("/").pop()}/${container.id}`;
   const file = fs.readFileSync(video);
   const upload = await fetch(uploadUrl, {
@@ -289,6 +331,10 @@ async function main() {
     }
 
     if (TOKEN) await checkAccount();
+    if (TOKEN && MODE === "dry-run" && MUSIC_QUERY) {
+      const tracks = await searchMusic(MUSIC_QUERY).catch(error => { console.warn(error.message); return []; });
+      console.log(`Music for “${MUSIC_QUERY}”:\n${tracks.slice(0, 15).map((t, i) => `  ${i + 1}. ${t.title} — ${t.artist} (id ${t.id})`).join("\n") || "  nothing found"}`);
+    }
 
     for (const story of queue) {
       const basename = `${new Date(story.pubDate).toISOString().slice(0, 10)}-${slug(story.headline)}`;
@@ -298,8 +344,10 @@ async function main() {
         console.log(`Caption:\n${caption(story)}`);
         continue;
       }
-      const result = await publishReel(story, media.video);
-      state.posts.push({ key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, at: new Date().toISOString() });
+      const music = await pickMusic(state.posts.length);
+      if (music) console.log(`Music: ${music.title || music.id}${music.artist ? ` — ${music.artist}` : ""}`);
+      const result = await publishReel(story, media.video, music);
+      state.posts.push({ key: story.key, headline: story.headline, media_id: result.id, permalink: result.permalink, music: music ? music.id : null, at: new Date().toISOString() });
       if (!state.seen.includes(story.key)) state.seen.push(story.key);
       saveState(state);
       console.log(`Published on Instagram: ${result.permalink || result.id}`);

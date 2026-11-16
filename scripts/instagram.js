@@ -21,6 +21,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
 const { spawn } = require("node:child_process");
+const { findPlace, placeTags } = require("./places.js");
 
 const ROOT = path.join(__dirname, "..");
 const STATE_PATH = path.join(ROOT, "data", "instagram-state.json");
@@ -49,7 +50,7 @@ const FPS = 30;
 const DURATION = 8; // seconds, see BFStory.motionTimes
 const COVER_AT = 5.8; // seconds: everything is revealed
 
-const HASHTAGS = "#buckfast #buckfasttonicwine #buckie #scotland #scottishnews";
+const BASE_TAGS = ["buckfast", "buckfasttonicwine", "buckie"];
 
 // ---------------------------------------------------------------- state
 
@@ -113,16 +114,22 @@ function isRecent(story) {
   return Number.isFinite(time) && Date.now() - time <= MAX_AGE_HOURS * 3600e3;
 }
 
+// The town of the story goes in the caption as a keyword line and as
+// hashtags, so local people find the stories from their area.
 function caption(story) {
   const clean = value => String(value || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  const place = findPlace(clean(story.headline), clean(story.description));
+  const where = place ? [place.name, place.region].filter(Boolean).join(", ") : "";
+  const tags = [...BASE_TAGS, ...placeTags(place)].map(tag => `#${tag}`).join(" ");
   return [
     clean(story.headline),
     "",
+    where ? `📍 ${where}` : "",
     story.source ? `Source: ${clean(story.source)}` : "",
     "Every Buckfast story, collected daily → buckfastandfurious.com (link in bio)",
     "",
-    HASHTAGS
-  ].filter((line, i, all) => line !== "" || all[i - 1] !== "").join("\n");
+    tags
+  ].filter((line, i, all) => line !== "" || (i > 0 && all[i - 1] !== "")).join("\n");
 }
 
 // ---------------------------------------------------------------- site & rendering
@@ -165,6 +172,7 @@ function listStories(page) {
       link: entry.link,
       pubDate: entry.pubDate,
       headline: parts.headline,
+      description: cleanText(entry.description || ""),
       source: parts.source,
       date: formatStoryDate(entry.pubDate),
       category: UI.en.categories[entry.category] || "",

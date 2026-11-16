@@ -29,3 +29,15 @@ test("can count pending stories without a browser", () => {
   const out = execFileSync(process.execPath, [require.resolve("../scripts/instagram.js"), "--pending"], { encoding: "utf8" });
   assert.match(out.trim(), /^\d+$/);
 });
+
+test("tags the town of the story in the caption", () => {
+  const { findPlace, placeTags } = require("../scripts/places.js");
+  assert.deepEqual(findPlace("Ayr thug smashed Buckfast bottle over man's head"), { name: "Ayr", region: "Ayrshire", country: "Scotland" });
+  assert.equal(findPlace("Buckfast-fuelled lout jailed in Ayrshire").name, "Ayrshire");
+  assert.equal(findPlace("Domestic abuser's Buckfast claim rejected", "A Dunfermline man told the court").name, "Dunfermline");
+  assert.equal(findPlace("Buckfast sales jump despite duty hike"), null);
+  assert.deepEqual(placeTags(null), ["scotland", "scottishnews"]);
+  const text = caption({ headline: "Angus woman jailed for Buckfast bottle petrol bomb attack", source: "The Courier" });
+  assert.match(text, /📍 Angus/);
+  assert.match(text, /#angus #scotland/);
+});

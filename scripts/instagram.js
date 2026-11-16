@@ -356,6 +356,13 @@ async function main() {
       return;
     }
 
+    // A manual publication also sets the baseline for automatic mode: every
+    // story already on the site counts as seen.
+    if (!state.initialized && MODE === "latest") {
+      state.initialized = new Date().toISOString();
+      state.seen = stories.map(story => story.key);
+    }
+
     let queue;
     if (MODE === "auto") {
       const seen = new Set(state.seen);

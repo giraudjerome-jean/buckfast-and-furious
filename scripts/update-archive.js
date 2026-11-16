@@ -8,6 +8,7 @@ const NEAR_PLACE = /\b(?:near|at|in|around|through)\s+buckfast\b/i;
 const PLACE_NAMES = /\bbuckfastleigh\b/i;
 const TRAFFIC_CONTEXT = /\b(?:a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/i;
 const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|burner|liner|coupon|promo code|free shipping|pack of|\d+\s?(?:pcs|pc|pack|set))\b/i;
+const WEATHER_PAGE = /\b(?:weather|forecast)\b/i;
 const BEE_CONTEXT = /\b(?:adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
 const BUCKFAST_ABBEY = /\b(?:buckfast abbey|abbaye de buckfast)\b/i;
@@ -20,7 +21,7 @@ const ABBEY_INCIDENT_CONTEXT = /\b(?:police|cops?|officers?|search(?:ed|es|ing)?
 // ("1.2g per litre", "135mg in 100ml of blood", "g/l") is never a recipe:
 // drink-driving court stories must stay.
 const RECIPE_QUANTITY = /\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|tbsp|tsp|oz|lbs?|cups?)\b(?!\s*(?:\/|per\b|of alcohol\b|d['’]alcool\b))/gi;
-const RECIPE_WORDS = /\b(?:ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of)\b/i;
+const RECIPE_WORDS = /\b(?:ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of|cocktail of the week|how to make)\b|[–-]\s*recipe\b|\brecipe\s*\|/i;
 const ALCOHOL_TEST = /(?:\bg\s?\/\s?l\b|\bper (?:litre|liter)\b|\bpar litre\b|\bblood\b|\bbreath\b|\burine\b|\bsang\b|\bmg\b|\bmicrogram|\blimit\b|\bdrink[- ]?driv|\bdrunk[- ]?driv|\balcohol (?:level|reading|test)\b|\balcoolémie\b)/i;
 const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
 const TOPIC_STOP_WORDS = new Set([
@@ -183,7 +184,7 @@ function isRelevant(item) {
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.
   if (!mentionsBuckfast(title) && !hasStrongDescriptionEvidence(title, description)) return false;
-  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || isRoutineAbbeyStory(title) || looksLikeRecipe(title)) {
+  if (PLACE_NAMES.test(text) || PRODUCT_SPAM.test(text) || BEE_CONTEXT.test(title) || WEATHER_PAGE.test(title) || isRoutineAbbeyStory(title) || looksLikeRecipe(title)) {
     return false;
   }
 

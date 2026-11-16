@@ -129,7 +129,7 @@ test("drops recipes posted on social media", () => {
   const recipe = "Buckfast Ham 1.7kg Ham 1 bottle of Buckfast 100 g sugar A sprinkle of sea salt A shake ... - Instagram";
   assert.ok(looksLikeRecipe(recipe));
   assert.equal(isRelevant({ title: recipe, link: "https://www.instagram.com/p/x" }), false);
-  assert.ok(!looksLikeRecipe("Cocktail of the week: Cafe Cùil’s Buckfast bloody Maìri – recipe | The good mixer - The Guardian"));
+  assert.ok(looksLikeRecipe("Cocktail of the week: Cafe Cùil’s Buckfast bloody Maìri – recipe | The good mixer - The Guardian"));
   assert.ok(!looksLikeRecipe("Sales of Buckfast fall by over £3 million after 'punitive' tax increase - The Herald"));
 });
 
@@ -144,4 +144,15 @@ test("keeps drink-driving stories that quote alcohol levels", () => {
   ]) {
     assert.ok(!looksLikeRecipe(title), title);
   }
+});
+
+test("filters cocktail recipes and weather pages", () => {
+  const { isRelevant } = require("../scripts/update-archive.js");
+  for (const title of [
+    "Cocktail of the week: Cafe Cùil’s Buckfast bloody Maìri – recipe | The good mixer - The Guardian",
+    "Buckfast Weather Today & Hourly Forecast - SpaceRef"
+  ]) {
+    assert.ok(!isRelevant({ title, description: "" }), title);
+  }
+  assert.ok(isRelevant({ title: "Buckfast-fuelled night out was a recipe for disaster, court hears", description: "" }));
 });

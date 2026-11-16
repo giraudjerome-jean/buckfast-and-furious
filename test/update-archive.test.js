@@ -132,3 +132,16 @@ test("drops recipes posted on social media", () => {
   assert.ok(!looksLikeRecipe("Cocktail of the week: Cafe Cùil’s Buckfast bloody Maìri – recipe | The good mixer - The Guardian"));
   assert.ok(!looksLikeRecipe("Sales of Buckfast fall by over £3 million after 'punitive' tax increase - The Herald"));
 });
+
+test("keeps drink-driving stories that quote alcohol levels", () => {
+  const { looksLikeRecipe } = require("../scripts/update-archive.js");
+  for (const title of [
+    "Driver had 1.2g per litre of alcohol after downing 70cl of Buckfast",
+    "Motorist found with 2.1g/l and 3 bottles of Buckfast in his car",
+    "Man had 135mg of alcohol in 100ml of blood after Buckfast binge",
+    "Buckfast drinker almost four times the limit: 2g of alcohol, 75cl bottle empty",
+    "Un automobiliste avec 1,8 g d'alcool par litre de sang et une bouteille de Buckfast"
+  ]) {
+    assert.ok(!looksLikeRecipe(title), title);
+  }
+});

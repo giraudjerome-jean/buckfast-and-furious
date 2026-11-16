@@ -894,9 +894,13 @@
       const titleLooksLikeTraffic =
         /\b(a\d{1,3}|motorway|road|route|traffic|travel|collision|crash|closed|closure|delays?|diversion|vehicles?|junction|accident)\b/.test(title);
 
-      const titleLooksLikeRecipe =
-        (title.match(/\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|ml|cl|l|litres?|liters?|tbsp|tsp|oz|lbs?|cups?)\b/g) || []).length >= 2 ||
-        /\b(ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of)\b/.test(title);
+      // Same rule as scripts/update-archive.js: food quantities or recipe
+      // words, never alcohol-test wording (drink-driving stories stay).
+      const titleLooksLikeAlcoholTest =
+        /(\bg\s?\/\s?l\b|\bper (litre|liter)\b|\bpar litre\b|\bblood\b|\bbreath\b|\burine\b|\bsang\b|\bmg\b|\bmicrogram|\blimit\b|\bdrink[- ]?driv|\bdrunk[- ]?driv|\balcohol (level|reading|test)\b|\balcoolémie\b)/.test(title);
+      const titleLooksLikeRecipe = !titleLooksLikeAlcoholTest && (
+        (title.match(/\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|tbsp|tsp|oz|lbs?|cups?)\b(?!\s*(?:\/|per\b|of alcohol\b|d['’]alcool\b))/g) || []).length >= 2 ||
+        /\b(ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of)\b/.test(title));
 
       if (beeContext) return true;
       if (titleLooksLikeRecipe) return true;

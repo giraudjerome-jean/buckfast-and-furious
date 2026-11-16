@@ -15,9 +15,13 @@ const ABBEY_ROUTINE_CONTEXT = /\b(?:abbots?|choirs?|choral|concerts?|recitals?|r
 const ABBEY_DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottles?|buckie|bucky|sales?|brand|production|bottling|distribution|licensing|exports?|revenue|profits?)\b/i;
 const ABBEY_INCIDENT_CONTEXT = /\b(?:police|cops?|officers?|search(?:ed|es|ing)?|investigat(?:e|ed|es|ing|ion)|arrests?|arrested|charged|attacks?|assaults?|fires?|blaze|thefts?|stolen|burglar(?:y|ies)|break[- ]ins?|missing|threats?|weapons?|emergency|incidents?|scandals?|vandalis(?:m|ed)|vandaliz(?:e|ed|es|ing)|injured|wounded|crimes?|court|crash|collision)\b/i;
 // Recipes posted on social media ("1.7kg ham, 1 bottle of Buckfast, 100 g
-// sugar…"): two quantities with a unit, or recipe vocabulary, in the headline.
-const RECIPE_QUANTITY = /\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|ml|cl|l|litres?|liters?|tbsp|tsp|oz|lbs?|cups?)\b/gi;
+// sugar…"): two food quantities, or recipe vocabulary, in the headline.
+// Volumes (cl, ml, litres) are not counted, and alcohol-test wording
+// ("1.2g per litre", "135mg in 100ml of blood", "g/l") is never a recipe:
+// drink-driving court stories must stay.
+const RECIPE_QUANTITY = /\b\d+(?:[.,]\d+)?\s?(?:kg|g|grams?|tbsp|tsp|oz|lbs?|cups?)\b(?!\s*(?:\/|per\b|of alcohol\b|d['’]alcool\b))/gi;
 const RECIPE_WORDS = /\b(?:ingredients?|preheat|tablespoons?|teaspoons?|a sprinkle of|a pinch of)\b/i;
+const ALCOHOL_TEST = /(?:\bg\s?\/\s?l\b|\bper (?:litre|liter)\b|\bpar litre\b|\bblood\b|\bbreath\b|\burine\b|\bsang\b|\bmg\b|\bmicrogram|\blimit\b|\bdrink[- ]?driv|\bdrunk[- ]?driv|\balcohol (?:level|reading|test)\b|\balcoolémie\b)/i;
 const DESCRIPTION_NOISE = /(?:\s[·|]\s|\b(?:related stories?|read more|more stories|latest news)\b)/i;
 const TOPIC_STOP_WORDS = new Set([
   "about", "after", "again", "before", "being", "could", "court", "from",
@@ -165,6 +169,7 @@ function deduplicate(items) {
 }
 
 function looksLikeRecipe(title) {
+  if (ALCOHOL_TEST.test(title)) return false;
   return (title.match(RECIPE_QUANTITY) || []).length >= 2 || RECIPE_WORDS.test(title);
 }
 

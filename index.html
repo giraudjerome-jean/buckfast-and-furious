@@ -469,114 +469,10 @@
       flex:0 0 auto;
     }
 
-    .story-card{
-      width:var(--story-w);
-      height:var(--story-h);
-      background:#f35a08;
-      color:#050505;
-      border:2px solid rgba(5,5,5,.95);
-      padding:72px 64px 0;
-      display:grid;
-      grid-template-rows:1fr auto;
-      gap:0;
-      overflow:hidden;
-      transform:scale(var(--story-preview-scale));
-      transform-origin:top left;
-    }
-
-    .story-top{
-      border-top:3px solid rgba(5,5,5,.95);
-      padding-top:20px;
-      display:grid;
-      grid-template-rows:auto 1fr;
-      min-height:0;
-    }
-
-    .story-kicker{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:20px;
-      margin-bottom:0;
-      font-size:22px;
-      line-height:1;
-      font-weight:700;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-    }
-
-    .story-kicker-left{
-      max-width:8.5em;
-    }
-
-    .story-title-wrap{
-      min-height:0;
-      max-height:none;
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      padding:42px 0 56px;
-    }
-
-    .story-title{
+    .story-canvas{
+      display:block;
       width:100%;
-      margin:0;
-      font-weight:700;
-      line-height:.84;
-      letter-spacing:-0.07em;
-      word-break:normal;
-      overflow-wrap:normal;
-      white-space:normal;
-      hyphens:none;
-      max-width:100%;
-    }
-
-    .story-bottom{
-      background:#050505;
-      color:#f35a08;
-      margin:0 -64px;
-      padding:34px 64px 46px;
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:40px;
-      align-items:end;
-    }
-
-    .story-site-wrap{
-      max-width:100%;
-      overflow:hidden;
-    }
-
-    .story-site{
-      font-size:30px;
-      font-weight:700;
-      letter-spacing:-0.025em;
-      line-height:1;
-      word-break:normal;
-      overflow-wrap:normal;
-      white-space:normal;
-      hyphens:none;
-      max-width:100%;
-    }
-
-    .story-meta{
-      font-size:18px;
-      line-height:1.2;
-      text-align:right;
-      font-weight:700;
-      letter-spacing:.02em;
-      text-transform:uppercase;
-    }
-
-    #export-render-root{
-      position:fixed;
-      left:-99999px;
-      top:0;
-      width:1080px;
-      height:1920px;
-      pointer-events:none;
-      opacity:0;
-      overflow:hidden;
+      height:100%;
     }
 
     @media (max-width: 900px){
@@ -708,33 +604,14 @@
 
       <div class="export-stage">
         <div class="story-preview-shell">
-          <div class="story-card" id="story-card">
-            <div class="story-top">
-              <div class="story-kicker">
-                <div class="story-kicker-left">BUCKFAST AND FURIOUS</div>
-                <div id="story-date">ARCHIVE</div>
-              </div>
-
-              <div class="story-title-wrap">
-                <div class="story-title" id="story-title">TITLE</div>
-              </div>
-            </div>
-
-            <div class="story-bottom">
-              <div class="story-site-wrap">
-                <div class="story-site" id="story-site">buckfastandfurious.com</div>
-              </div>
-              <div class="story-meta" id="story-meta">Story<br>buckfastandfurious.com</div>
-            </div>
-          </div>
+          <canvas class="story-canvas" id="story-canvas" width="1080" height="1920" aria-label="Story preview"></canvas>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="export-render-root"></div>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="/story-render.js"></script>
   <script>
     const UI = {
       en: {
@@ -835,12 +712,8 @@
     const sectionMeta = document.getElementById("section-meta");
 
     const exportWrap = document.getElementById("export-wrap");
-    const storyCard = document.getElementById("story-card");
-    const storyDate = document.getElementById("story-date");
-    const storyTitle = document.getElementById("story-title");
-    const storySite = document.getElementById("story-site");
-    const storyMeta = document.getElementById("story-meta");
-    const exportRenderRoot = document.getElementById("export-render-root");
+    const storyCanvas = document.getElementById("story-canvas");
+    let storyData = null;
 
     const btnShare = document.getElementById("btn-share");
     const btnDownload = document.getElementById("btn-download");
@@ -916,56 +789,6 @@
       if (!text) return "";
       if (text.length <= max) return text;
       return text.slice(0, max - 3).trim() + "...";
-    }
-
-    function fitTextToBox(el, box, maxSize, minSize) {
-      let low = minSize;
-      let high = maxSize;
-      let best = minSize;
-
-      // Binary search finds the largest possible type size instead of merely
-      // shrinking from a conservative default. This makes every title behave
-      // like a typographic poster while still guaranteeing no clipping.
-      for (let step = 0; step < 12; step += 1) {
-        const size = (low + high) / 2;
-        el.style.fontSize = `${size}px`;
-
-        const fits = el.scrollHeight <= box.clientHeight &&
-          el.scrollWidth <= box.clientWidth;
-
-        if (fits) {
-          best = size;
-          low = size;
-        } else {
-          high = size;
-        }
-      }
-
-      const fittedSize = Math.floor(best * 10) / 10;
-      el.style.fontSize = `${fittedSize}px`;
-      el.dataset.fitSize = String(fittedSize);
-    }
-
-    function fitStoryText(cardElement) {
-      const titleEl = cardElement.querySelector(".story-title");
-      const siteEl = cardElement.querySelector(".story-site");
-      const titleWrap = cardElement.querySelector(".story-title-wrap");
-      const siteWrap = cardElement.querySelector(".story-site-wrap");
-
-      fitTextToBox(titleEl, titleWrap, 320, 32);
-      fitTextToBox(siteEl, siteWrap, 42, 16);
-    }
-
-    async function waitForFonts() {
-      if (document.fonts && document.fonts.ready) {
-        try {
-          await document.fonts.ready;
-        } catch {}
-      }
-    }
-
-    function nextFrame() {
-      return new Promise(resolve => requestAnimationFrame(resolve));
     }
 
     function formatStoryDate(dateString) {
@@ -1385,13 +1208,13 @@
       }
 
       const storyParts = getStoryParts(entry);
-      storyDate.textContent = formatStoryDate(entry.pubDate);
-      storyTitle.textContent = storyParts.headline;
-      storySite.textContent = storyParts.source;
-      storyMeta.innerHTML = `${UI[currentLang].categories[entry.category] || t("storyLabel")}<br>Buckfast &amp; Furious`;
-
-      storyTitle.style.fontSize = "";
-      storySite.style.fontSize = "";
+      storyData = {
+        headline: storyParts.headline,
+        source: storyParts.source,
+        date: formatStoryDate(entry.pubDate),
+        category: UI[currentLang].categories[entry.category] || t("storyLabel"),
+        lang: currentLang
+      };
 
       exportWrap.classList.add("active");
       preparedStoryAsset = null;
@@ -1399,50 +1222,16 @@
       btnDownload.disabled = true;
       shareStatus.textContent = t("sharePreparing");
 
-      await waitForFonts();
-      await nextFrame();
-      await nextFrame();
-      fitStoryText(storyCard);
-
       prepareStoryAsset();
     }
 
+    // The Story image is drawn by story-render.js (shared with the automatic
+    // Instagram Reels), straight into the preview canvas.
     async function buildStoryBlob() {
-      await waitForFonts();
-
-      const clone = storyCard.cloneNode(true);
-      clone.style.transform = "none";
-      clone.style.width = "1080px";
-      clone.style.height = "1920px";
-      clone.style.position = "relative";
-      clone.style.left = "0";
-      clone.style.top = "0";
-
-      exportRenderRoot.innerHTML = "";
-      exportRenderRoot.appendChild(clone);
-
-      const cloneTitle = clone.querySelector(".story-title");
-      const cloneSite = clone.querySelector(".story-site");
-      cloneTitle.style.fontSize = "";
-      cloneSite.style.fontSize = "";
-      fitStoryText(clone);
-
-      await nextFrame();
-      await nextFrame();
-
-      const canvas = await html2canvas(clone, {
-        width: 1080,
-        height: 1920,
-        scale: 1,
-        backgroundColor: "#f35a08",
-        useCORS: true,
-        logging: false
-      });
-
-      exportRenderRoot.innerHTML = "";
-
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve({ blob, canvas }), "image/png");
+      if (!window.BFStory) throw new Error("story-render.js is not loaded");
+      await window.BFStory.renderStill(storyCanvas, storyData, "story", "/");
+      return new Promise(resolve => {
+        storyCanvas.toBlob(blob => resolve({ blob, canvas: storyCanvas }), "image/png");
       });
     }
 

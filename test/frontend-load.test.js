@@ -30,8 +30,9 @@ test("renders before starting optional French translations", () => {
   assert.ok(initialRender < backgroundTranslations);
 });
 
-test("does not block parsing on the Story export library", () => {
-  assert.match(html, /<script defer src="https:\/\/cdn\.jsdelivr\.net\/npm\/html2canvas@1\.4\.1/);
+test("does not block parsing on the Story renderer", () => {
+  assert.match(html, /<script defer src="\/story-render\.js"><\/script>/);
+  assert.doesNotMatch(html, /html2canvas/);
 });
 
 test("mirrors the contextual Buckfast Abbey filter in the front end", () => {

@@ -80,6 +80,22 @@ function storyKey(link) {
   }
 }
 
+function archiveKeys() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(ROOT, "archive.json"), "utf8")).map(item => storyKey(item.link));
+  } catch {
+    return [];
+  }
+}
+
+// Number of archive stories never seen by the automation (cheap: no browser).
+function pendingCount() {
+  const state = loadState();
+  if (!state.initialized) return 1;
+  const seen = new Set(state.seen);
+  return archiveKeys().filter(key => key && !seen.has(key)).length;
+}
+
 // ---------------------------------------------------------------- selection
 
 function isEligible(story) {
@@ -404,6 +420,9 @@ async function main() {
       // once published, so a failed upload is retried on the next run.
       const queued = new Set(queue.map(story => story.key));
       state.seen.push(...fresh.filter(story => !queued.has(story.key)).map(story => story.key));
+      // Archive items the site itself hides are recorded too, so they never
+      // count as pending.
+      state.seen.push(...archiveKeys().filter(key => key && !queued.has(key)));
       saveState(state);
       console.log(`${fresh.length} new story(ies), ${queue.length} to publish (${postedToday} posted in the last 24 h).`);
     } else {
@@ -444,7 +463,8 @@ async function main() {
           console.log(`Published as a Story too: ${post.story_id}`);
         } catch (error) {
           post.story_error = error.message;
-          console.warn(`The Story could not be published: ${error.message}`);
+          console.error(`The Story could not be published: ${error.message}`);
+          process.exitCode = 1;
         }
         saveState(state);
       }
@@ -455,7 +475,9 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (require.main === module && process.argv.includes("--pending")) {
+  console.log(pendingCount());
+} else if (require.main === module) {
   main().catch(error => {
     console.error(error.message);
     process.exitCode = 1;

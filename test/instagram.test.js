@@ -23,3 +23,9 @@ test("credits the source and points to the site in the caption", () => {
   assert.match(text, /Source: The Courier/);
   assert.match(text, /buckfastandfurious\.com/);
 });
+
+test("can count pending stories without a browser", () => {
+  const { execFileSync } = require("node:child_process");
+  const out = execFileSync(process.execPath, [require.resolve("../scripts/instagram.js"), "--pending"], { encoding: "utf8" });
+  assert.match(out.trim(), /^\d+$/);
+});

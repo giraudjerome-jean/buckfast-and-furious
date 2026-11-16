@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
+      instagram: ${{ steps.instagram.outcome }}
 
     steps:
       - name: Checkout repo
@@ -71,6 +72,7 @@ jobs:
           cache: npm
 
       - name: Publish new stories on Instagram
+        id: instagram
         continue-on-error: true
         env:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
@@ -79,7 +81,7 @@ jobs:
           IG_AUDIO_ID: ${{ vars.IG_AUDIO_ID }}
         run: |
           if [ -z "$IG_ACCESS_TOKEN" ]; then echo "No Instagram token configured."; exit 0; fi
-          if [ "$IG_MODE" = "auto" ] && [ -f data/instagram-state.json ] && git diff --quiet -- archive.json; then
+          if [ "$IG_MODE" = "auto" ] && [ "$(node scripts/instagram.js --pending)" = "0" ]; then
             echo "No new story."; exit 0
           fi
           npm ci
@@ -151,3 +153,15 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # The Instagram step never blocks the site update, but if it failed the
+  # whole run is marked as failed so GitHub sends its failure e-mail.
+  instagram-alert:
+    needs: [update, deploy]
+    if: ${{ always() && needs.update.outputs.instagram == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report the Instagram failure
+        run: |
+          echo "::error::La publication Instagram a échoué : voir l'étape « Publish new stories on Instagram » du job update."
+          exit 1

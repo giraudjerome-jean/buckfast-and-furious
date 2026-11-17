@@ -167,3 +167,11 @@ test("drops abbey events and pages unrelated to the drink", () => {
   ]) assert.ok(!isRelevant({ title, description: "" }), title);
   assert.ok(isRelevant({ title: "Buckfast Abbey in bid to shake off bad image as it announces record profits - The National", description: "" }));
 });
+
+test("drops social posts and shops behind Google Alerts redirects", () => {
+  const { isRelevant } = require("../scripts/update-archive.js");
+  const via = url => `https://www.google.com/url?rct=j&sa=t&url=${encodeURIComponent(url)}`;
+  assert.ok(!isRelevant({ title: "Buckfast bottle attack in Ayr", link: via("https://www.facebook.com/groups/1/posts/2/") }));
+  assert.ok(!isRelevant({ title: "Buckfast bottle attack in Ayr", link: via("https://www.pressreader.com/uk/x") }));
+  assert.ok(isRelevant({ title: "Buckfast bottle attack in Ayr", link: via("https://www.ayradvertiser.com/news/1/") }));
+});

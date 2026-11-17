@@ -1400,7 +1400,9 @@
           );
           if (nearDuplicate) return false;
 
-          const rawLink = (entry.link || "").trim().toLowerCase();
+          // Google Alerts links are all google.com/url?url=…: compare the
+          // real article address, or every alert after the first is dropped.
+          const rawLink = getSourceUrl((entry.link || "").trim()).toLowerCase();
           const normalizedLink = rawLink
             .replace(/^https?:\/\//, "")
             .replace(/^www\./, "")

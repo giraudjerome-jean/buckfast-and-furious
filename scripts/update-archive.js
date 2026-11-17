@@ -13,6 +13,19 @@ const PRODUCT_SPAM = /\b(?:personalised|personalized|custom|sticker|label|foil|b
 const OFF_TOPIC = /\b(?:widdecombe|requiem|choir|choral|realtors?|operation buckfast|latest news|search \/ x)\b|\bpage \d+\s*$/i;
 const ABBEY_ONLY = /\babbey\b/i;
 const ABBEY_DRINK = /\b(?:tonic|wine|drink|alcohol|profits?|sales|income|record|crime|bottles?|bad image)\b/i;
+// Social posts, video platforms, press-scan sites and shops are not
+// stories: judged on the real address behind Google Alerts redirects.
+const NOT_A_STORY_HOST = /(^|\.)(?:facebook\.com|x\.com|twitter\.com|instagram\.com|tiktok\.com|youtube\.com|reddit\.com|pressreader\.com|folksy\.com|etsy\.com|ebay\.[a-z.]+|amazon\.[a-z.]+|ubuy\.[a-z.]+|snappyshopper\.co\.uk|beerstore\.com\.au|newtimebahrain\.com)$/i;
+function sourceHost(link) {
+  try {
+    let url = new URL(link);
+    const target = /(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname === "/url" && url.searchParams.get("url");
+    if (target) url = new URL(target);
+    return url.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
 const WEATHER_PAGE = /\b(?:weather|forecast)\b/i;
 const BEE_CONTEXT = /\b(?:adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/i;
 const DRINK_CONTEXT = /\b(?:buckfast tonic wine|tonic wine|fortified wine|caffeinated wine|wine|alcohol|alcoholic|drink|drinking|booze|bottle|bottles|buckie|bucky)\b/i;
@@ -185,6 +198,7 @@ function isRelevant(item) {
   const text = `${title} ${description}`.trim();
 
   if (!mentionsBuckfast(text)) return false;
+  if (NOT_A_STORY_HOST.test(sourceHost(item.link))) return false;
   // Buckfast in the headline is the strongest signal. Description-only matches
   // are still allowed when the summary is coherent with the headline and does
   // not look like a related-story card copied into the RSS feed.

@@ -12,6 +12,10 @@ on:
         type: choice
         default: auto
         options: [auto, dry-run, latest, story]
+      match:
+        description: "Avec latest : publie l'article dont le titre contient ce texte"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -77,6 +81,7 @@ jobs:
         env:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_MODE: ${{ github.event.inputs.instagram || 'auto' }}
+          IG_MATCH: ${{ github.event.inputs.match }}
           IG_MUSIC_QUERY: ${{ vars.IG_MUSIC_QUERY }}
           IG_AUDIO_ID: ${{ vars.IG_AUDIO_ID }}
         run: |

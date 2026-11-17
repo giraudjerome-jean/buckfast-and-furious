@@ -434,7 +434,14 @@ async function main() {
       saveState(state);
       console.log(`${fresh.length} new story(ies), ${queue.length} to publish (${postedToday} posted in the last 24 h).`);
     } else {
-      queue = stories.filter(story => isEligible(story) && !posted.has(story.key)).slice(0, 1);
+      // IG_MATCH (manual runs): publish the story whose headline contains
+      // this text instead of the latest one.
+      const match = String(process.env.IG_MATCH || "").trim().toLowerCase();
+      queue = stories
+        .filter(story => !match || story.headline.toLowerCase().includes(match))
+        .filter(story => isEligible(story) && !posted.has(story.key))
+        .slice(0, 1);
+      if (match && !queue.length) console.log(`No unpublished story matches “${match}”.`);
     }
 
     if (TOKEN) await checkAccount();

@@ -1,0 +1,32 @@
+name: Instagram token check
+
+# Every morning, checks that the Instagram token still works and does not
+# expire within 10 days. If it does, the run fails and GitHub sends its
+# failure e-mail, before the Reels stop going out.
+
+on:
+  schedule:
+    - cron: '40 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the Instagram token
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          set -o pipefail
+          node scripts/instagram.js --check-token | tee -a "$GITHUB_STEP_SUMMARY"

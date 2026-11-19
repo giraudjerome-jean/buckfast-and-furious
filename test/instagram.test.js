@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { caption, isEligible, planAutoRun, storyKey } = require("../scripts/instagram.js");
+const { caption, describeToken, isEligible, planAutoRun, storyKey } = require("../scripts/instagram.js");
 
 test("uses the real article URL behind Google Alerts redirects", () => {
   assert.equal(
@@ -71,4 +71,25 @@ test("waits for the next day when the daily limit is reached", () => {
   assert.equal(plan.queue.length, 0);
   assert.equal(plan.waiting, 1);
   assert.deepEqual(plan.skipped, []);
+});
+
+test("warns before the Instagram token expires", () => {
+  const now = Date.parse("2026-11-19T12:00:00Z");
+  const inDays = days => Math.floor((now + days * 86400e3) / 1000);
+  assert.equal(describeToken({ type: "PAGE", is_valid: true, expires_at: 0, data_access_expires_at: 0 }, now).ok, true);
+  assert.equal(describeToken({ type: "USER", is_valid: true, expires_at: inDays(45) }, now).ok, true);
+  const soon = describeToken({ type: "USER", is_valid: true, expires_at: inDays(45), data_access_expires_at: inDays(5) }, now);
+  assert.equal(soon.ok, false);
+  assert.match(soon.message, /2026-11-24/);
+  assert.equal(describeToken({ is_valid: false }, now).ok, false);
+  assert.equal(describeToken(null, now).ok, true);
+});
+
+test("fails the token check when no token is configured", () => {
+  const { spawnSync } = require("node:child_process");
+  const env = { ...process.env };
+  delete env.IG_ACCESS_TOKEN;
+  const run = spawnSync(process.execPath, [require.resolve("../scripts/instagram.js"), "--check-token"], { encoding: "utf8", env });
+  assert.equal(run.status, 1);
+  assert.match(run.stdout, /No Instagram token/);
 });

@@ -14,6 +14,9 @@
 //   latest   publish the latest eligible story that was never posted
 //   story    publish the Story that failed for the latest Reel
 //
+// `--check-token` only checks that the token works and does not expire within
+// 10 days (instagram-token workflow, every morning).
+//
 // State lives in data/instagram-state.json: every story already seen is
 // recorded, so the backlog is never posted and nothing is posted twice.
 
@@ -292,6 +295,38 @@ async function graph(method, endpoint, params = {}) {
   return json;
 }
 
+// ---------------------------------------------------------------- token health
+
+const TOKEN_WARNING_DAYS = Number(process.env.IG_TOKEN_WARNING_DAYS || 10);
+
+// Turns the debug_token answer into a verdict. A token expires through
+// expires_at, or through data_access_expires_at (90 days without a login
+// for user tokens); 0 means never.
+function describeToken(info, now = Date.now()) {
+  if (!info) return { ok: true, message: "The Instagram token works (its expiry date could not be read)." };
+  if (info.is_valid === false) return { ok: false, message: "The Instagram token is no longer valid." };
+  const limits = [info.expires_at, info.data_access_expires_at].filter(t => Number(t) > 0).map(t => Number(t) * 1000);
+  if (!limits.length) return { ok: true, message: `The Instagram token (${info.type || "unknown type"}) never expires.` };
+  const end = Math.min(...limits);
+  const days = Math.floor((end - now) / 86400e3);
+  const date = new Date(end).toISOString().slice(0, 10);
+  if (days < TOKEN_WARNING_DAYS) {
+    return { ok: false, days, message: `The Instagram token (${info.type || "unknown type"}) expires on ${date}, in ${Math.max(days, 0)} day(s): generate a new one and update the IG_ACCESS_TOKEN secret.` };
+  }
+  return { ok: true, days, message: `The Instagram token (${info.type || "unknown type"}) is valid until ${date} (${days} days left).` };
+}
+
+async function checkToken() {
+  if (!TOKEN) return { ok: false, message: "No Instagram token configured (IG_ACCESS_TOKEN secret)." };
+  try {
+    await graph("GET", `/${IG_USER_ID}`, { fields: "username" });
+  } catch (error) {
+    return { ok: false, message: `The Instagram token no longer works: ${error.message}` };
+  }
+  const info = await graph("GET", "/debug_token", { input_token: TOKEN }).then(json => json.data).catch(() => null);
+  return describeToken(info);
+}
+
 async function checkAccount() {
   const account = await graph("GET", `/${IG_USER_ID}`, { fields: "username" });
   let quota = null;
@@ -501,6 +536,12 @@ async function main() {
 
 if (require.main === module && process.argv.includes("--pending")) {
   console.log(pendingCount());
+} else if (require.main === module && process.argv.includes("--check-token")) {
+  // Exit code 1 when the token is dead or about to expire (daily health check).
+  checkToken().then(status => {
+    console.log(status.message);
+    if (!status.ok) process.exitCode = 1;
+  });
 } else if (require.main === module) {
   main().catch(error => {
     console.error(error.message);
@@ -508,4 +549,4 @@ if (require.main === module && process.argv.includes("--pending")) {
   });
 }
 
-module.exports = { caption, isEligible, planAutoRun, storyKey };
+module.exports = { caption, describeToken, isEligible, planAutoRun, storyKey };

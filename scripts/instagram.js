@@ -109,9 +109,27 @@ function isEligible(story) {
   return true;
 }
 
-function isRecent(story) {
+function isRecent(story, now = Date.now()) {
   const time = new Date(story.pubDate).getTime();
-  return Number.isFinite(time) && Date.now() - time <= MAX_AGE_HOURS * 3600e3;
+  return Number.isFinite(time) && now - time <= MAX_AGE_HOURS * 3600e3;
+}
+
+// What the automatic mode publishes in this run. Eligible recent stories
+// beyond the hourly or daily limit stay pending and go out on the next runs.
+// Only stories that will never be posted (too old, not eligible, hidden by
+// the site) are marked as seen; queued ones are marked once published, so a
+// failed upload is retried too.
+function planAutoRun(stories, state, archive = [], now = Date.now()) {
+  const seen = new Set(state.seen);
+  const posted = new Set(state.posts.map(post => post.key));
+  const fresh = stories.filter(story => !seen.has(story.key));
+  const candidates = fresh.filter(story => isEligible(story) && isRecent(story, now) && !posted.has(story.key));
+  const postedToday = state.posts.filter(post => now - new Date(post.at).getTime() < 24 * 3600e3).length;
+  const room = Math.max(0, Math.min(MAX_PER_RUN, MAX_PER_DAY - postedToday));
+  const queue = candidates.slice(0, room);
+  const pending = new Set(candidates.map(story => story.key));
+  const skipped = [...fresh.map(story => story.key), ...archive].filter(key => key && !pending.has(key));
+  return { fresh, queue, waiting: candidates.length - queue.length, skipped, postedToday };
 }
 
 // The town of the story goes in the caption as a keyword line and as
@@ -419,20 +437,11 @@ async function main() {
 
     let queue;
     if (MODE === "auto") {
-      const seen = new Set(state.seen);
-      const fresh = stories.filter(story => !seen.has(story.key));
-      const postedToday = state.posts.filter(post => Date.now() - new Date(post.at).getTime() < 24 * 3600e3).length;
-      const room = Math.max(0, Math.min(MAX_PER_RUN, MAX_PER_DAY - postedToday));
-      queue = fresh.filter(story => isEligible(story) && isRecent(story) && !posted.has(story.key)).slice(0, room);
-      // Stories that will not be posted are recorded now; queued ones only
-      // once published, so a failed upload is retried on the next run.
-      const queued = new Set(queue.map(story => story.key));
-      state.seen.push(...fresh.filter(story => !queued.has(story.key)).map(story => story.key));
-      // Archive items the site itself hides are recorded too, so they never
-      // count as pending.
-      state.seen.push(...archiveKeys().filter(key => key && !queued.has(key)));
+      const plan = planAutoRun(stories, state, archiveKeys());
+      queue = plan.queue;
+      state.seen.push(...plan.skipped);
       saveState(state);
-      console.log(`${fresh.length} new story(ies), ${queue.length} to publish (${postedToday} posted in the last 24 h).`);
+      console.log(`${plan.fresh.length} new story(ies), ${queue.length} to publish, ${plan.waiting} waiting for the next runs (${plan.postedToday} posted in the last 24 h).`);
     } else {
       // IG_MATCH (manual runs): publish the story whose headline contains
       // this text instead of the latest one.
@@ -499,4 +508,4 @@ if (require.main === module && process.argv.includes("--pending")) {
   });
 }
 
-module.exports = { caption, isEligible, storyKey };
+module.exports = { caption, isEligible, planAutoRun, storyKey };

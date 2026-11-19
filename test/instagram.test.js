@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { caption, isEligible, storyKey } = require("../scripts/instagram.js");
+const { caption, isEligible, planAutoRun, storyKey } = require("../scripts/instagram.js");
 
 test("uses the real article URL behind Google Alerts redirects", () => {
   assert.equal(
@@ -40,4 +40,35 @@ test("tags the town of the story in the caption", () => {
   const text = caption({ headline: "Angus woman jailed for Buckfast bottle petrol bomb attack", source: "The Courier" });
   assert.match(text, /📍 Angus/);
   assert.match(text, /#angus #scotland/);
+});
+
+test("keeps extra new stories pending instead of dropping them", () => {
+  const now = Date.parse("2026-11-19T12:00:00Z");
+  const story = (key, hoursAgo) => ({
+    key, headline: `Buckfast bottle attacker jailed after court hearing ${key}`, sourcePriority: 1,
+    pubDate: new Date(now - hoursAgo * 3600e3).toISOString()
+  });
+  const stories = [story("a", 1), story("b", 2), story("old", 24 * 30)];
+  const state = { seen: [], posts: [] };
+
+  const first = planAutoRun(stories, state, ["a", "b", "old", "hidden"], now);
+  assert.deepEqual(first.queue.map(s => s.key), ["a"]);
+  assert.equal(first.waiting, 1);
+  assert.deepEqual(first.skipped.sort(), ["hidden", "old", "old"]);
+
+  // Next run, once "a" is published: "b" goes out.
+  state.seen.push(...first.skipped, "a");
+  state.posts.push({ key: "a", at: new Date(now).toISOString() });
+  const second = planAutoRun(stories, state, ["a", "b", "old", "hidden"], now + 3600e3);
+  assert.deepEqual(second.queue.map(s => s.key), ["b"]);
+});
+
+test("waits for the next day when the daily limit is reached", () => {
+  const now = Date.parse("2026-11-19T12:00:00Z");
+  const posts = [1, 2, 3].map(h => ({ key: `p${h}`, at: new Date(now - h * 3600e3).toISOString() }));
+  const stories = [{ key: "n", headline: "Man admits using Buckfast bottle to assault two in Ayr", sourcePriority: 1, pubDate: new Date(now).toISOString() }];
+  const plan = planAutoRun(stories, { seen: [], posts }, ["n"], now);
+  assert.equal(plan.queue.length, 0);
+  assert.equal(plan.waiting, 1);
+  assert.deepEqual(plan.skipped, []);
 });

@@ -15,7 +15,7 @@ const ABBEY_ONLY = /\babbey\b/i;
 const ABBEY_DRINK = /\b(?:tonic|wine|drink|alcohol|profits?|sales|income|record|crime|bottles?|bad image)\b/i;
 // Social posts, video platforms, press-scan sites and shops are not
 // stories: judged on the real address behind Google Alerts redirects.
-const NOT_A_STORY_HOST = /(^|\.)(?:facebook\.com|x\.com|twitter\.com|instagram\.com|tiktok\.com|youtube\.com|reddit\.com|pressreader\.com|folksy\.com|etsy\.com|ebay\.[a-z.]+|amazon\.[a-z.]+|ubuy\.[a-z.]+|snappyshopper\.co\.uk|beerstore\.com\.au|newtimebahrain\.com)$/i;
+const NOT_A_STORY_HOST = /(^|\.)(?:facebook\.com|x\.com|twitter\.com|instagram\.com|tiktok\.com|youtube\.com|reddit\.com|pressreader\.com|folksy\.com|etsy\.com|ebay\.[a-z.]+|amazon\.[a-z.]+|ubuy\.[a-z.]+|snappyshopper\.co\.uk|beerstore\.com\.au|newtimebahrain\.com|gta5-mods\.com|nexusmods\.com)$/i;
 function sourceHost(link) {
   try {
     let url = new URL(link);

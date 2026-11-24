@@ -907,6 +907,13 @@
       const link = (entry.link || "").toLowerCase();
       const text = `${title} ${desc} ${link}`;
       const articleText = `${title} ${desc}`;
+
+      // Same rules as scripts/update-archive.js. Needed here too because
+      // the page also pulls the live feeds, which skip the archive filter.
+      let sourceHost = "";
+      try { sourceHost = new URL(getSourceUrl(entry.link || "")).hostname.replace(/^www\./, ""); } catch {}
+      if (/(^|\.)(?:facebook\.com|x\.com|twitter\.com|instagram\.com|tiktok\.com|youtube\.com|reddit\.com|pressreader\.com|folksy\.com|etsy\.com|ebay\.[a-z.]+|amazon\.[a-z.]+|ubuy\.[a-z.]+|snappyshopper\.co\.uk|beerstore\.com\.au|newtimebahrain\.com|gta5-mods\.com|nexusmods\.com)$/.test(sourceHost)) return true;
+      if (/\b(?:weather|forecast|widdecombe|realtors?|operation buckfast|latest news|search \/ x|cocktail of the week)\b|\bpage \d+\s*$/.test(title)) return true;
       const beeContext =
         /\b(adami|bees?|beekeeper|beekeeping|apiary|apiarist|honeybees?|queen bee|apis mellifera)\b/.test(title);
       const buckfastMentions = (articleText.match(/\bbuckfast\b/g) || []).length;

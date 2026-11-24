@@ -151,12 +151,26 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
+      # GitHub sometimes takes a few seconds to list a freshly uploaded
+      # artifact: wait, then retry once if the first deploy can't find it.
+      - name: Let the artifact register
+        run: sleep 20
+
       - name: Deploy
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Deploy (retry)
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 60
+
+      - name: Deploy (second attempt)
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
   # The Instagram step never blocks the site update, but if it failed the
